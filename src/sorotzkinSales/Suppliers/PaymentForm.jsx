@@ -1,28 +1,51 @@
 import React, { useState } from 'react';
-import { useAsync } from '../utils';          // Hook לטעינה אסינכרונית
-import { getPaymentMethods } from '../api';    // שליפת אמצעי תשלום מהשרת
-import { Button, FormField, Input, Select } from '../Common/UI';
+
+// useAsync — Hook שמפשט טעינת נתונים מהשרת:
+// במקום לכתוב useState + useEffect + try/catch בכל מקום,
+// פשוט קוראים: const { data, loading } = useAsync(someApiFunction)
+import { useAsync } from '../utils';
+
+// getPaymentMethods — פונקציה מה-API שמבצעת GET /api/payment_methods
+// ומחזירה מערך כמו: [{ id: 1, name: 'מזומן' }, { id: 2, name: 'העברה בנקאית' }, ...]
+import { getPaymentMethods } from '../api';
+
+// ייבוא קומפוננטות UI משותפות של האתר
+import { Button, FormField, Select, Input } from '../Common/UI';
+
+// formatCurrency — הופך מספר למחרוזת מטבע: 1500 → "₪1,500.00"
 import { formatCurrency } from '../utils';
 
-// ─── PaymentForm ──────────────────────────────────────────────────────────
+// ─── PaymentForm ───────────────────────────────────────────────────────────────
 // טופס לרישום תשלום לספק.
 // props:
-//   suppliers  — רשימת הספקים (מ-SuppliersPage)
-//   onSubmit   — callback שמקבל את נתוני הטופס
-//   onClose    — callback לסגירת המודל
-//   loading    — האם בתהליך שמירה
+//   suppliers  — מערך ספקים [{ id, name, balance }] לבחירה בדרופדאון
+//   onSubmit   — callback שנקרא עם נתוני הטופס אחרי שליחה
+//   onClose    — callback לסגירת המודל (לחיצת ביטול)
+//   loading    — האם השרת עדיין מעבד (מסתיר כפתור שליחה)
 const PaymentForm = ({ suppliers, onSubmit, onClose, loading }) => {
+
+  // form — אובייקט המחזיק את ערכי כל שדות הטופס.
+  // בכל שינוי בשדה — מעדכנים את המפתח המתאים בלי לאפס את השאר (spread: {...f, [k]:v})
   const [form, setForm] = useState({
-    supplier_id: '',
-    amount: '',
-    date: '',
-    payment_method_id: '',
+    supplier_id: '',   // מזהה הספק שנבחר
+    amount: '',   // סכום התשלום
+    date: '',   // תאריך התשלום
+    payment_method_id: '',   // מזהה אמצעי התשלום שנבחר
   });
+
+  // פונקציית עזר לעדכון שדה בודד בטופס.
+  // set('amount', '500') → form.amount = '500', שאר השדות נשמרים
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
-  // שליפת אמצעי תשלום מהשרת — נטען אוטומטית בטעינת הקומפוננטה
+  // ── טעינת אמצעי תשלום ────────────────────────────────────────────────────
+  // useAsync מפעיל את getPaymentMethods() אוטומטית כשהקומפוננטה נטענת.
+  // paymentMethods   — המערך שהשרת החזיר (null בתחילה, עד שהבקשה חוזרת)
+  // loadingMethods   — true בזמן שהבקשה בדרך, false אחרי שחזרה
   const { data: paymentMethods, loading: loadingMethods } = useAsync(getPaymentMethods);
 
+  // ── שליחת הטופס ──────────────────────────────────────────────────────────
+  // e.preventDefault() מונע טעינה מחדש של הדף (התנהגות ברירת מחדל של form)
+  // Number() ממיר את מחרוזות הטופס למספרים כי ה-DB מצפה ל-integer/numeric
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit({
@@ -35,9 +58,15 @@ const PaymentForm = ({ suppliers, onSubmit, onClose, loading }) => {
 
   return (
     <form onSubmit={handleSubmit}>
-      {/* ─── בחירת ספק ─── */}
+
+      {/* ─── בחירת ספק ─────────────────────────────────────────────────── */}
+      {/* מציג את כל הספקים עם שמם וחובם הנוכחי */}
       <FormField label="ספק" required>
-        <Select value={form.supplier_id} onChange={e => set('supplier_id', e.target.value)} required>
+        <Select
+          value={form.supplier_id}
+          onChange={e => set('supplier_id', e.target.value)}
+          required
+        >
           <option value="">בחר ספק...</option>
           {(suppliers || []).map(s => (
             <option key={s.id} value={s.id}>
@@ -47,43 +76,62 @@ const PaymentForm = ({ suppliers, onSubmit, onClose, loading }) => {
         </Select>
       </FormField>
 
-      {/* ─── סכום ותאריך ─── */}
+      {/* ─── סכום ותאריך בשורה אחת ─────────────────────────────────────── */}
+      {/* form-grid-2 מסדר שני שדות זה לצד זה */}
       <div className="form-grid-2">
         <FormField label="סכום" required>
           <Input
-            type="number" min="0.01" step="0.01"
+            type="number"
+            min="0.01"      /* מינימום 1 אגורה */
+            step="0.01"     /* מאפשר אגורות */
             value={form.amount}
             onChange={e => set('amount', e.target.value)}
-            placeholder="0.00" required
+            placeholder="0.00"
+            required
           />
         </FormField>
         <FormField label="תאריך" required>
           <Input
-            type="date" value={form.date}
-            onChange={e => set('date', e.target.value)} required
+            type="date"
+            value={form.date}
+            onChange={e => set('date', e.target.value)}
+            required
           />
         </FormField>
       </div>
 
-      {/* ─── אמצעי תשלום — נטען מהשרת ─── */}
+      {/* ─── אמצעי תשלום ────────────────────────────────────────────────── */}
+      {/* הרשימה נטענת מהשרת (getPaymentMethods).
+          בזמן הטעינה — הדרופדאון מושבת ומציג "טוען..."
+          אחרי הטעינה — מציג את כל האפשרויות מה-DB */}
       <FormField label="אמצעי תשלום" required>
         <Select
           value={form.payment_method_id}
           onChange={e => set('payment_method_id', e.target.value)}
           required
-          disabled={loadingMethods}
+          disabled={loadingMethods}  /* נעול בזמן טעינה */
         >
-          <option value="">{loadingMethods ? 'טוען...' : 'בחר אמצעי תשלום...'}</option>
+          <option value="">
+            {loadingMethods ? 'טוען אמצעי תשלום...' : 'בחר אמצעי תשלום...'}
+          </option>
+          {/* paymentMethods מגיע מהשרת — מערך של { id, name } */}
           {(paymentMethods || []).map(m => (
             <option key={m.id} value={m.id}>{m.name}</option>
           ))}
         </Select>
       </FormField>
 
+      {/* ─── כפתורי פעולה ───────────────────────────────────────────────── */}
+      {/* form-actions מסדר את הכפתורים בשורה עם רווח ביניהם */}
       <div className="form-actions">
+        {/* ביטול — סוגר את המודל בלי לשלוח */}
         <Button variant="ghost" onClick={onClose} type="button">ביטול</Button>
-        <Button type="submit" disabled={loading}>{loading ? 'רושם...' : 'רשום תשלום'}</Button>
+        {/* שליחה — מושבת בזמן שהשרת מעבד (loading=true) */}
+        <Button type="submit" disabled={loading}>
+          {loading ? 'רושם...' : 'רשום תשלום'}
+        </Button>
       </div>
+
     </form>
   );
 };

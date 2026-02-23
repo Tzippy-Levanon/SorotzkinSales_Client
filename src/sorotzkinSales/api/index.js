@@ -47,7 +47,7 @@ export const updateSupplier = (id, data) => api.patch(`/suppliers/${id}`, data);
 export const recordStockArrival = (data) => api.post('/suppliers/recordStockArrival', data);
 export const recordPayment = (data) => api.post('/suppliers/recordPayment', data);
 export const uploadInvoice = (fd) => api.postForm('/suppliers/uploadInvoice', fd);
-export const getPaymentMethods = () => api.get('/payment_methods');
+export const getPaymentMethods = () => api.get('/paymentMethods');
 export const getSupplierPayments = (supplierId) => api.get(`/suppliers/${supplierId}/payments`);
 
 export const getInventoryReport = () => api.get('/reports/inventory');
