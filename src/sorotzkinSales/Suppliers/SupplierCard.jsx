@@ -1,24 +1,35 @@
 import React, { useState } from 'react';
-import { Button, Badge, Spinner } from '../Common/UI';
+import { Button, Badge, Spinner, Modal } from '../Common/UI';
 import { formatCurrency, formatDate } from '../utils';
 import { getSupplierPayments } from '../api';
 
-// ─── SupplierCard ─────────────────────────────────────────────────────────
-// כרטיס ספק עם אפשרות לפתוח היסטוריית תשלומים + הורדת חשבוניות
+// ─── SupplierCard ──────────────────────────────────────────────────────────────
+// כרטיס ספק. לחיצה על "תצוגת תשלומים" פותחת Modal נפרד (לא מרחיב את הכרטיס),
+// כך שכל הכרטיסים נשארים באותו גודל בגריד.
 const SupplierCard = ({ supplier, onEdit }) => {
   const hasDebt = (supplier.balance || 0) > 0;
-  const [showPayments, setShowPayments] = useState(false);
+
+  // האם מודל התשלומים פתוח
+  const [paymentsOpen, setPaymentsOpen] = useState(false);
+  // הנתונים שנטענו מהשרת (null = עוד לא נטענו)
   const [payments, setPayments] = useState(null);
   const [loadingPay, setLoadingPay] = useState(false);
 
-  const togglePayments = async () => {
-    if (showPayments) { setShowPayments(false); return; }
-    setShowPayments(true);
-    if (payments) return; // כבר טעון
+  // Pagination בתוך המודל — 5 תשלומים לדף
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 5;
+
+  // ─── פתיחת מודל תשלומים ───────────────────────────────────────────────────
+  // טוען את התשלומים מהשרת רק בפתיחה הראשונה (cache: אם payments כבר קיים — לא טוען שוב)
+  const openPayments = async () => {
+    setPaymentsOpen(true);
+    setPage(1); // תמיד מתחיל מדף 1 בפתיחה
+    if (payments !== null) return; // כבר נטענו — לא צריך שוב
     setLoadingPay(true);
     try {
       const data = await getSupplierPayments(supplier.id);
-      setPayments(data);
+      // מוודא שהתוצאה היא מערך (הגנה מפני תגובת שרת לא צפויה)
+      setPayments(Array.isArray(data) ? data : []);
     } catch (_) {
       setPayments([]);
     } finally {
@@ -26,9 +37,31 @@ const SupplierCard = ({ supplier, onEdit }) => {
     }
   };
 
+  // ─── חישוב pagination ─────────────────────────────────────────────────────
+  const allPayments = payments || [];
+  const totalPages = Math.max(1, Math.ceil(allPayments.length / PAGE_SIZE));
+  const pagPayments = allPayments.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  // ─── פתיחת חשבונית ────────────────────────────────────────────────────────
+  // file_url מגיע מהשרת כנתיב יחסי (uploads/xxx.pdf).
+  // בונים URL מלא לשרת כדי שהדפדפן יפתח את הקובץ ולא את ה-React Router.
+  const openInvoice = (fileUrl) => {
+    // אם כבר URL מלא (מתחיל ב-http) — השתמש ישירות
+    if (fileUrl.startsWith('http')) {
+      window.open(fileUrl, '_blank');
+    } else {
+      // אחרת — בנה URL מלא לשרת
+      const serverBase = import.meta.env.VITE_API_URL
+        ? import.meta.env.VITE_API_URL.replace('/api', '')
+        : 'http://localhost:5000';
+      window.open(`${serverBase}/${fileUrl}`, '_blank');
+    }
+  };
+
   return (
     <div className="card supplier-card">
-      {/* ─── כותרת כרטיס ─── */}
+
+      {/* ─── כותרת: שם + כפתור עריכה ──────────────────────────────────── */}
       <div className="supplier-card__header">
         <div>
           <div className="supplier-card__name">{supplier.name}</div>
@@ -39,21 +72,17 @@ const SupplierCard = ({ supplier, onEdit }) => {
         <Button size="sm" variant="ghost" onClick={onEdit}>עריכה</Button>
       </div>
 
-      {/* ─── פרטי קשר ─── */}
+      {/* ─── פרטי קשר ──────────────────────────────────────────────────── */}
       <div className="supplier-card__contacts">
         {supplier.phone && (
-          <div className="supplier-card__contact-row">
-            <span>📞</span>{supplier.phone}
-          </div>
+          <div className="supplier-card__contact-row"><span>📞</span>{supplier.phone}</div>
         )}
         {supplier.email && (
-          <div className="supplier-card__contact-row">
-            <span>✉️</span>{supplier.email}
-          </div>
+          <div className="supplier-card__contact-row"><span>✉️</span>{supplier.email}</div>
         )}
       </div>
 
-      {/* ─── יתרת חוב ─── */}
+      {/* ─── יתרת חוב ──────────────────────────────────────────────────── */}
       <div className={`supplier-card__balance ${hasDebt ? 'supplier-card__balance--owed' : 'supplier-card__balance--clear'}`}>
         <div className="supplier-card__balance-label">יתרת חוב</div>
         <div className={`supplier-card__balance-amount ${hasDebt ? 'supplier-card__balance-amount--owed' : 'supplier-card__balance-amount--clear'}`}>
@@ -61,20 +90,32 @@ const SupplierCard = ({ supplier, onEdit }) => {
         </div>
       </div>
 
-      {/* ─── כפתור היסטוריית תשלומים ─── */}
-      <button className="supplier-card__payments-toggle" onClick={togglePayments}>
-        {showPayments ? '▲ הסתר תשלומים' : '▼ תצוגת תשלומים'}
+      {/* ─── כפתור פתיחת מודל תשלומים ──────────────────────────────────── */}
+      <button className="supplier-card__payments-toggle" onClick={openPayments}>
+        ▼ תצוגת תשלומים
       </button>
 
-      {/* ─── פאנל תשלומים ─── */}
-      {showPayments && (
-        <div className="supplier-card__payments">
-          {loadingPay ? (
-            <div className="supplier-card__payments-loading"><Spinner size="sm" /></div>
-          ) : !payments?.length ? (
-            <div className="supplier-card__payments-empty">אין תשלומים רשומים</div>
-          ) : (
-            <table className="data-table supplier-card__payments-table">
+      {/* ─── Modal תשלומים ─────────────────────────────────────────────────
+          נפתח מעל האפליקציה — לא מרחיב את הכרטיס.
+          כולל pagination של 5 תשלומים לדף.                               */}
+      <Modal
+        isOpen={paymentsOpen}
+        onClose={() => setPaymentsOpen(false)}
+        title={`היסטוריית תשלומים — ${supplier.name}`}
+        width="680px"
+      >
+        {loadingPay ? (
+          // טוען — מציג spinner מרכוזי
+          <div className="supplier-card__payments-loading"><Spinner size="sm" /></div>
+
+        ) : !allPayments.length ? (
+          // אין תשלומים בכלל
+          <div className="supplier-card__payments-empty">אין תשלומים רשומים עדיין</div>
+
+        ) : (
+          <>
+            {/* ─── טבלת תשלומים ────────────────────────────────────────── */}
+            <table className="data-table">
               <thead>
                 <tr>
                   <th>תאריך</th>
@@ -84,7 +125,7 @@ const SupplierCard = ({ supplier, onEdit }) => {
                 </tr>
               </thead>
               <tbody>
-                {payments.map((p, i) => (
+                {pagPayments.map((p, i) => (
                   <tr key={i}>
                     <td>{formatDate(p.date)}</td>
                     <td><strong>{formatCurrency(p.amount)}</strong></td>
@@ -93,16 +134,15 @@ const SupplierCard = ({ supplier, onEdit }) => {
                       {p.invoices?.length > 0 ? (
                         <div className="supplier-card__invoices">
                           {p.invoices.map((inv, idx) => (
-                            <a
+                            // onClick במקום href — בונה URL מלא לשרת
+                            <button
                               key={idx}
-                              href={inv.file_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
                               className="supplier-card__invoice-link"
-                              title={inv.reference_number ? `חשבונית ${inv.reference_number}` : `חשבונית ${idx + 1}`}
+                              onClick={() => openInvoice(inv.file_url)}
+                              title={inv.reference_number || `חשבונית ${idx + 1}`}
                             >
                               📄 {inv.reference_number || `חשבונית ${idx + 1}`}
-                            </a>
+                            </button>
                           ))}
                         </div>
                       ) : (
@@ -113,9 +153,24 @@ const SupplierCard = ({ supplier, onEdit }) => {
                 ))}
               </tbody>
             </table>
-          )}
-        </div>
-      )}
+
+            {/* ─── Pagination — מוצג רק אם יש יותר מ-5 תשלומים ─────────── */}
+            {totalPages > 1 && (
+              <div className="pagination" style={{ marginTop: '16px' }}>
+                <button className="pagination__btn"
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}>&#8249; הקודם</button>
+                <span className="pagination__info">
+                  דף {page} מתוך {totalPages} ({allPayments.length} תשלומים)
+                </span>
+                <button className="pagination__btn"
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}>הבא &#8250;</button>
+              </div>
+            )}
+          </>
+        )}
+      </Modal>
     </div>
   );
 };
