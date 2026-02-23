@@ -7,8 +7,11 @@ const SalesReport = ({ showToast }) => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [saleId, setSaleId] = useState('');
-  // טוען רשימת מכירות לbdropdown
-  const { data: allSales } = useAsync(getSales);  // רשימת מכירות לbdropdown
+
+  // ── טעינת רשימת מכירות לדרופדאון ──────────────────────────────────────
+  // useAsync מפעיל את getSales בטעינה ואחסון ב-allSales.
+  // כשהמנהלת בוחרת מכירה — היא בוחרת מהרשימה, לא מקלידה מזהה.
+  const { data: allSales } = useAsync(getSales);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [excelLoading, setExcelLoading] = useState(false);
@@ -66,10 +69,17 @@ const SalesReport = ({ showToast }) => {
       {/* ─── פילטרים ─── */}
       <Card className="report-filters">
         <div className="report-filters__row">
+          {/* בחירת מכירה ספציפית — דרופדאון במקום שדה ID */}
+          {/* allSales נטען ברקע; כשמבחרים מכירה — saleId מתעדכן */}
           <FormField label="מכירה ספציפית">
-            <Select value={saleId} onChange={e => setSaleId(e.target.value)}
-              className="report-filters__input--id">
-              <option value="">כל המכירות (לפי טווח תאריכים)</option>
+            <Select value={saleId} onChange={e => {
+              setSaleId(e.target.value);
+              // כשבוחרים מכירה ספציפית — מאפסים תאריכים (לא רלוונטיים)
+              if (e.target.value) { setStartDate(''); setEndDate(''); }
+            }}>
+              {/* האפשרות הראשונה: הצג כל המכירות לפי טווח תאריכים */}
+              <option value="">כל המכירות</option>
+              {/* עבור כל מכירה ברשימה — צור אפשרות עם שם, תאריך ואייקון סטטוס */}
               {(allSales || []).map(s => (
                 <option key={s.id} value={s.id}>
                   {s.name} — {formatDate(s.date)} {s.status === 'closed' ? '🔒' : '🔓'}
@@ -77,13 +87,18 @@ const SalesReport = ({ showToast }) => {
               ))}
             </Select>
           </FormField>
+          {/* עד תאריך מופיע ראשון בJSX כי ב-RTL הראשון מוצג בצד ימין.
+              הסדר הנכון בתצוגה (מימין לשמאל): [עד תאריך] [מתאריך] */}
           <FormField label="מתאריך">
-            <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="report-filters__input--date" />
+            <Input type="date" value={startDate} onChange={e => { setStartDate(e.target.value); setSaleId(''); }} className="report-filters__input--date" />
           </FormField>
           <FormField label="עד תאריך">
-            <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="report-filters__input--date" />
+            <Input type="date" value={endDate} onChange={e => { setEndDate(e.target.value); setSaleId(''); }} className="report-filters__input--date" />
           </FormField>
-          <Button onClick={fetchReport} disabled={loading}>{loading ? 'טוען...' : 'הפק דוח'}</Button>
+          {/* הכפתור עם margin-right: auto דוחף אותו לקצה השורה (שמאל ב-RTL = סוף) */}
+          <Button style={{ marginRight: 'auto' }} onClick={fetchReport} disabled={loading}>
+            {loading ? 'טוען...' : 'הפק דוח'}
+          </Button>
         </div>
       </Card>
 
@@ -94,7 +109,17 @@ const SalesReport = ({ showToast }) => {
         <div id="sales-report">
           <div className="stats-grid--2">
             <StatCard label="מספר מכירות" value={data['כמות'] ?? salesList.length} />
-            <StatCard label="טווח תאריכים" value={startDate ? `${formatDate(startDate)} — ${formatDate(endDate)}` : 'כל הזמנים'} />
+            {/* מציג את טווח התאריכים שנבחר.
+                אם שני תאריכים: "X — Y"
+                אם רק התחלה:   "מ-X"
+                אם רק סיום:    "עד Y"
+                אם כלום:       "כל הזמנים" */}
+            <StatCard label="טווח תאריכים" value={
+              startDate && endDate ? `${formatDate(startDate)} — ${formatDate(endDate)}`
+                : startDate ? `מ- ${formatDate(startDate)}`
+                  : endDate ? `עד- ${formatDate(endDate)}`
+                    : 'כל הזמנים'
+            } />
           </div>
           <Card>
             <table className="data-table">
