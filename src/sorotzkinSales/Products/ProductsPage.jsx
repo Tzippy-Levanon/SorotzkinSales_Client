@@ -8,13 +8,14 @@ import ProductForm from './ProductForm';
 import ProductsTable from './ProductsTable';
 
 const ProductsPage = ({ showToast }) => {
-  const { data: _productsRaw, loading, refetch } = useAsync(getProducts);
-  const { data: _suppliersRaw } = useAsync(getSuppliers);
-  // הגנה: ודא שתמיד מערך (גם אם השרת מחזיר אובייקט/null)
-  const products = Array.isArray(_productsRaw) ? _productsRaw : [];
-  const suppliers = Array.isArray(_suppliersRaw) ? _suppliersRaw : [];
+  const { data: products, loading, refetch } = useAsync(getProducts);
+  const { data: suppliers } = useAsync(getSuppliers);
 
-  const [page, setPage] = useState(1);   // דף נוכחי (pagination)
+  // page — מספר הדף הנוכחי (מתחיל מ-1)
+  // PAGE_SIZE — כמה מוצרים בכל דף
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 20;
+
   const [searchText, setSearchText] = useState('');
   const [filterSupplier, setFilterSupplier] = useState('');
   const [filterOutOfStock, setFilterOutOfStock] = useState(false);
@@ -25,7 +26,7 @@ const ProductsPage = ({ showToast }) => {
   const [deactivateConfirm, setDeactivateConfirm] = useState(null);
 
   const filtered = useMemo(() => {
-    if (!products.length && loading) return [];
+    if (!products) return [];
     return products.filter(p => {
       if (searchText && !p.name.toLowerCase().includes(searchText.toLowerCase())) return false;
       if (filterSupplier && String(p.supplier_id) !== filterSupplier) return false;
@@ -35,16 +36,20 @@ const ProductsPage = ({ showToast }) => {
     });
   }, [products, searchText, filterSupplier, filterOutOfStock, filterInactive]);
 
+  // כשמסנן משתנה — חזור לדף 1 כדי שלא יהיה דף ריק
+  React.useEffect(() => { setPage(1); }, [searchText, filterSupplier, filterOutOfStock, filterInactive]);
+
+  // totalPages — כמה דפים יש בסך הכל (מעוגל למעלה)
+  // paginated — רק המוצרים של הדף הנוכחי (slice מתוך filtered)
+  // לדוגמה: 45 מוצרים עם PAGE_SIZE=20 → דפים 1,2,3
+  //   דף 1: slice(0,20)   → 20 מוצרים
+  //   דף 2: slice(20,40)  → 20 מוצרים
+  //   דף 3: slice(40,60)  → 5 מוצרים
+  const totalPages = Math.max(1, Math.ceil((filtered?.length || 0) / PAGE_SIZE));
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
   const supplierMap = useMemo(() =>
     Object.fromEntries((suppliers || []).map(s => [s.id, s.name])), [suppliers]);
-
-  // ─── Pagination — 20 מוצרים לדף ────────────────────────────────────────
-  const PAGE_SIZE = 20;
-  const totalPages = Math.max(1, Math.ceil((filtered?.length || 0) / PAGE_SIZE));
-  const paginated = (filtered || []).slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-
-  // אפס לדף 1 כשמשתנה הסינון
-  React.useEffect(() => { setPage(1); }, [searchText, filterSupplier, filterOutOfStock, filterInactive]);
 
   const handleSubmit = async (form) => {
     setSubmitting(true);
@@ -77,7 +82,9 @@ const ProductsPage = ({ showToast }) => {
       <div className="page-header">
         <div>
           <h1 className="page-title">ניהול מלאי</h1>
-          <p className="page-subtitle">{products ? `${products.length} מוצרים במערכת` : ''}</p>
+          {/* מציג ספירה רק אחרי שהנתונים הגיעו — כמו דף הספקים.
+              !loading מוודא שלא מציגים "0 מוצרים" לפני שהנתונים הגיעו */}
+          <p className="page-subtitle">{!loading && products ? `${products.length} מוצרים במערכת` : ''}</p>
         </div>
         <Button icon="+" onClick={() => { setEditProduct(null); setModalOpen(true); }}>מוצר חדש</Button>
       </div>
@@ -104,11 +111,11 @@ const ProductsPage = ({ showToast }) => {
         </select>
         <label className="products-filters__checkbox">
           <input type="checkbox" checked={filterOutOfStock} onChange={e => setFilterOutOfStock(e.target.checked)} />
-          אזל מהמלאי
+          אזלו מהמלאי
         </label>
         <label className="products-filters__checkbox">
           <input type="checkbox" checked={filterInactive} onChange={e => setFilterInactive(e.target.checked)} />
-          הצג גם לא פעילים
+          הצג לא פעילים
         </label>
         {(searchText || filterSupplier || filterOutOfStock) && (
           <Button variant="ghost" size="sm" onClick={() => { setSearchText(''); setFilterSupplier(''); setFilterOutOfStock(false); }}>
@@ -131,6 +138,32 @@ const ProductsPage = ({ showToast }) => {
             onDeactivate={p => setDeactivateConfirm(p)}
           />
         </Card>
+      )}
+
+      {/* ─── ניווט דפים (Pagination) ─────────────────────────────────────────
+          מוצג רק אם יש יותר מדף אחד.
+          הכפתורים מושבתים בקצוות (לא ניתן ללכת לפני דף 1 או אחרי הדף האחרון) */}
+      {!loading && totalPages > 1 && (
+        <div className="pagination">
+          {/* הקודם — page-1, מושבת בדף הראשון */}
+          <button
+            className="pagination__btn"
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+          >&#8249; הקודם</button>
+
+          {/* מידע על הדף הנוכחי */}
+          <span className="pagination__info">
+            דף {page} מתוך {totalPages} ({filtered.length} מוצרים)
+          </span>
+
+          {/* הבא — page+1, מושבת בדף האחרון */}
+          <button
+            className="pagination__btn"
+            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+          >הבא &#8250;</button>
+        </div>
       )}
 
       {/* ─── מודל הוספה/עריכה ─── */}
