@@ -7,6 +7,8 @@ const SalesReport = ({ showToast }) => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [saleId, setSaleId] = useState('');
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 15;
 
   // ── טעינת רשימת מכירות לדרופדאון ──────────────────────────────────────
   // useAsync מפעיל את getSales בטעינה ואחסון ב-allSales.
@@ -18,13 +20,16 @@ const SalesReport = ({ showToast }) => {
   const [pdfLoading, setPdfLoading] = useState(false);
 
   const fetchReport = async () => {
-    setLoading(true); setData(null);
+    setLoading(true); 
+    setData(null);
     try {
       const params = {};
       if (saleId) params.sale_id = saleId;
       if (startDate) params.startDate = startDate;
       if (endDate) params.endDate = endDate;
-      setData(await getSalesReport(params));
+      const result = await getSalesReport(params);
+      setData(result);
+      setPage(1); // איפוס לדף 1 בכל הפקת דוח חדשה
     } catch (e) { showToast(e.message, 'error'); }
     finally { setLoading(false); }
   };
@@ -53,6 +58,8 @@ const SalesReport = ({ showToast }) => {
   const summary = data?.['סיכום_כספי'];
   const products = data?.['מוצרים'] || [];
   const salesList = data?.['מכירות'] || [];
+  const totalPages = Math.max(1, Math.ceil(salesList.length / PAGE_SIZE));
+  const salesListPag = salesList.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div>
@@ -125,7 +132,7 @@ const SalesReport = ({ showToast }) => {
             <table className="data-table">
               <thead><tr><th>שם מכירה</th><th>תאריך</th><th>סטטוס</th></tr></thead>
               <tbody>
-                {salesList.map((s, i) => (
+                {salesListPag.map((s, i) => (
                   <tr key={i} className="sales-list__row-clickable"
                     onClick={() => setSaleId(String(s['מזהה'] || ''))}>
                     <td><strong>{s['שם מכירה']}</strong></td>
@@ -136,6 +143,15 @@ const SalesReport = ({ showToast }) => {
               </tbody>
             </table>
           </Card>
+
+          {/* pagination לרשימת מכירות — מוצג רק כשאין מכירה ספציפית נבחרת */}
+          {!saleId && totalPages > 1 && (
+            <div className="pagination">
+              <button className="pagination__btn" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>&#8249; הקודם</button>
+              <span className="pagination__info">דף {page} מתוך {totalPages} ({salesList.length} מכירות)</span>
+              <button className="pagination__btn" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>הבא &#8250;</button>
+            </div>
+          )}
         </div>
       )}
 

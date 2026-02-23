@@ -24,9 +24,7 @@ const ProductsTable = ({ products, supplierMap, onEdit, onDeactivate }) => (
             <td>{formatCurrency(p.cost_price)}</td>
             <td className="products-table__price--bold">{formatCurrency(p.selling_price)}</td>
             <td>
-              <span className={`products-table__stock ${p.total_in_stock === 0 ? 'products-table__stock--zero' :
-                  p.total_in_stock < 5 ? 'products-table__stock--low' : ''
-                }`}>{p.total_in_stock}</span>
+              <span className={`products-table__stock ${p.total_in_stock === 0 ? 'products-table__stock--zero' : ''}`}>{p.total_in_stock}</span>
             </td>
             <td>
               <Badge variant={p.is_active ? 'success' : 'danger'}>

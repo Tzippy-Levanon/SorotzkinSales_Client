@@ -87,10 +87,6 @@
    color: var(--danger);
 }
 
-.products-table__stock--low {
-   color: var(--warning);
-}
-
 .products-table__actions {
    display: flex;
    gap: 6px;
@@ -144,7 +140,7 @@
 }
 
 .sale-card__icon--open {
-   background: var(--accent-subtle);
+   background-color: var(--success-subtle);
 }
 
 .sale-card__icon--closed {

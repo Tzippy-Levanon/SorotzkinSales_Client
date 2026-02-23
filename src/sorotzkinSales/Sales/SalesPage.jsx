@@ -7,6 +7,12 @@ import SaleCard from './SaleCard';
 
 const SalesPage = ({ showToast }) => {
   const { data: sales, loading, refetch } = useAsync(getSales);
+
+  // Pagination — 5 מכירות לדף (כרטיסים גדולים, לא שורות קטנות)
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10; // 10 מכירות בדף
+  const totalPages = Math.max(1, Math.ceil((sales?.length || 0) / PAGE_SIZE));
+  const paginated = (sales || []).slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const { data: products } = useAsync(getProducts);
   const [newSaleModal, setNewSaleModal] = useState(false);
   const [form, setForm] = useState({ name: '', date: '' });
@@ -45,7 +51,7 @@ const SalesPage = ({ showToast }) => {
         <EmptyState icon="🏷️" title="אין מכירות" description="צור מכירה חדשה להתחיל" />
       ) : (
         <div className="sales-list">
-          {sales.map(sale => (
+          {paginated.map(sale => (
             <SaleCard
               key={sale.id}
               sale={sale}
@@ -56,6 +62,19 @@ const SalesPage = ({ showToast }) => {
               onToggle={() => setExpandedSale(expandedSale === sale.id ? null : sale.id)}
             />
           ))}
+        </div>
+      )}
+
+      {/* ניווט דפים */}
+      {!loading && totalPages > 1 && (
+        <div className="pagination">
+          <button className="pagination__btn"
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}>&#8249; הקודם</button>
+          <span className="pagination__info">דף {page} מתוך {totalPages} ({(sales || []).length} מכירות)</span>
+          <button className="pagination__btn"
+            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}>הבא &#8250;</button>
         </div>
       )}
 

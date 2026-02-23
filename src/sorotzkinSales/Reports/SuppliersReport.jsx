@@ -5,6 +5,8 @@ import { formatCurrency, downloadBlob, exportToPDF } from '../utils'; // תוק�
 
 const SuppliersReport = ({ showToast }) => {
   const [data, setData] = useState(null);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 15;
   const [loading, setLoading] = useState(false);
   const [excelLoading, setExcelLoading] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
@@ -31,6 +33,8 @@ const SuppliersReport = ({ showToast }) => {
   };
 
   const suppliers = data?.['ספקים'] || [];
+  const totalPages = Math.max(1, Math.ceil(suppliers.length / PAGE_SIZE));
+  const suppliersPag = suppliers.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div>
@@ -58,7 +62,7 @@ const SuppliersReport = ({ showToast }) => {
             <table className="data-table">
               <thead><tr><th>שם ספק</th><th>שם חברה</th><th>טלפון</th><th>מייל</th><th>יתרת חוב</th></tr></thead>
               <tbody>
-                {suppliers.map((s, i) => (
+                {suppliersPag.map((s, i) => (
                   <tr key={i}>
                     <td><strong>{s['שם ספק']}</strong></td>
                     <td className="suppliers-table__company">{s['שם חברה'] || '—'}</td>
@@ -72,6 +76,14 @@ const SuppliersReport = ({ showToast }) => {
               </tbody>
             </table>
           </Card>
+
+          {totalPages > 1 && (
+            <div className="pagination">
+              <button className="pagination__btn" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>&#8249; הקודם</button>
+              <span className="pagination__info">דף {page} מתוך {totalPages} ({suppliers.length} ספקים)</span>
+              <button className="pagination__btn" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>הבא &#8250;</button>
+            </div>
+          )}
         </div>
       )}
     </div>

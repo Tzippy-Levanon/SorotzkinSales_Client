@@ -5,6 +5,8 @@ import { formatCurrency, downloadBlob, exportToPDF } from '../utils'; // תוק�
 
 const InventoryReport = ({ showToast }) => {
   const [data, setData] = useState(null);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 15; // 15 שורות בדף לדוחות
   const [loading, setLoading] = useState(false);
   const [excelLoading, setExcelLoading] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
@@ -32,6 +34,8 @@ const InventoryReport = ({ showToast }) => {
 
   // מה השרת מחזיר: { 'תאריך', 'סה"כ מוצרים', 'סה"כ ערך מלאי', 'מוצרים במלאי': [...] }
   const inventory = data?.['מוצרים במלאי'] || [];
+  const totalPages = Math.max(1, Math.ceil(inventory.length / PAGE_SIZE));
+  const inventoryPag = inventory.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div>
@@ -63,13 +67,13 @@ const InventoryReport = ({ showToast }) => {
                   <tr><th>שם מוצר</th><th>כמות במלאי</th><th>מחיר עלות</th><th>שווי מלאי</th><th>סטטוס</th></tr>
                 </thead>
                 <tbody>
-                  {inventory.map((p, i) => {
+                  {inventoryPag.map((p, i) => {
                     const qty = p['כמות במלאי'];
                     const cost = p['מחיר עלות'];
                     return (
                       <tr key={i}>
                         <td><strong>{p['שם מוצר']}</strong></td>
-                        <td><strong className={qty === 0 ? 'products-table__stock--zero' : qty < 5 ? 'products-table__stock--low' : ''}>{qty}</strong></td>
+                        <td><strong className={qty === 0 ? 'products-table__stock--zero' : ''}>{qty}</strong></td>
                         <td>{formatCurrency(cost)}</td>
                         <td><strong>{formatCurrency(qty * (cost || 0))}</strong></td>
                         <td><Badge variant={p['סטטוס'] === 'פעיל' ? 'success' : 'danger'}>{p['סטטוס']}</Badge></td>
@@ -80,6 +84,15 @@ const InventoryReport = ({ showToast }) => {
               </table>
             </div>
           </Card>
+
+          {/* pagination לדוח מלאי */}
+          {totalPages > 1 && (
+            <div className="pagination">
+              <button className="pagination__btn" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>&#8249; הקודם</button>
+              <span className="pagination__info">דף {page} מתוך {totalPages} ({inventory.length} מוצרים)</span>
+              <button className="pagination__btn" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>הבא &#8250;</button>
+            </div>
+          )}
         </div>
       )}
     </div>

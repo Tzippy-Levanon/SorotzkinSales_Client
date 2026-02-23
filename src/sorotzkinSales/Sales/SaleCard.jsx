@@ -15,20 +15,25 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle }) 
   const [loading, setLoading] = useState(false);
 
   const isOpen = sale.status === 'open';
+
+  // Pagination לרשימת המוצרים בפנים — 10 מוצרים לדף
+  const [prodPage, setProdPage] = useState(1);
+  const PROD_PAGE_SIZE = 10;
   const activeProducts = useMemo(() => (products || []).filter(p => p.is_active), [products]);
+
+  // טעינת פרטי המכירה בפתיחת הפאנל
+  // איפוס לדף 1 בכל פתיחה מחדש של הכרטיס
+  React.useEffect(() => { if (!isExpanded) setProdPage(1); }, [isExpanded]);
 
   const handleToggle = async () => {
     onToggle();
     // טוען פרטים רק בפתיחה, ורק אם עוד לא נטענו
     if (!isExpanded && !saleDetail) {
-      setDetailLoading(true);
       try {
         const data = await getSaleDetail(sale.id);
         setSaleDetail(data);
       } catch (_) {
-        setSaleDetail({ error: true });
-      } finally {
-        setDetailLoading(false);
+        // אם השרת לא מחזיר פרטים — לא קריטי
       }
     }
   };
@@ -36,7 +41,7 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle }) 
   const fetchAndOpenClose = async () => {
     setLoading(true);
     try {
-      const data = saleDetail || await getSaleDetail(sale.id);
+      const data = await getSaleDetail(sale.id);
       const rawProducts = data['מוצרים'] || [];
       if (!rawProducts.length) return showToast('אין מוצרים משויכים למכירה זו', 'error');
       const items = rawProducts
@@ -63,6 +68,7 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle }) 
       await addProductsToSale(sale.id, selectedProducts);
       showToast('המוצרים נוספו בהצלחה');
       setAddModal(false); setSelectedProducts([]);
+      // רענן פרטים
       const data = await getSaleDetail(sale.id);
       setSaleDetail(data);
     } catch (e) { showToast(e.message, 'error'); }
@@ -80,7 +86,9 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle }) 
   };
 
   const saleProducts = saleDetail?.['מוצרים'] || [];
-  const summary = saleDetail?.['סיכום_כספי'] || saleDetail?.['סיכום_כספי'];
+  const summary = saleDetail?.['סיכום_כספי'];
+  const totalProdPages = Math.max(1, Math.ceil(saleProducts.length / PROD_PAGE_SIZE));
+  const prodPaginated = saleProducts.slice((prodPage - 1) * PROD_PAGE_SIZE, prodPage * PROD_PAGE_SIZE);
 
   return (
     <div className="card sale-card">
@@ -101,10 +109,10 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle }) 
         </div>
       </div>
 
-      {/* ─── פאנל פרטים ─── */}
+      {/* ─── פאנל פרטים נפתח ─── */}
       {isExpanded && (
         <div className="sale-detail">
-          {/* כפתורי פעולה */}
+          {/* כפתורי פעולה — רק למכירה פתוחה */}
           {isOpen && (
             <div className="sale-detail__actions">
               <Button size="sm" variant="secondary" onClick={() => setAddModal(true)}>+ הוסף מוצרים</Button>
@@ -135,7 +143,7 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle }) 
                   </tr>
                 </thead>
                 <tbody>
-                  {saleProducts.map((p, i) => (
+                  {prodPaginated.map((p, i) => (
                     <tr key={i}>
                       <td><strong>{p['מוצר']}</strong></td>
                       <td>{(p['נמכר'] || 0) + (p['חזר'] || 0)}</td>
@@ -147,6 +155,16 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle }) 
                   ))}
                 </tbody>
               </table>
+              {/* pagination מוצרים — מוצג רק אם יש יותר מ-10 */}
+              {totalProdPages > 1 && (
+                <div className="pagination" style={{ marginTop: '12px' }}>
+                  <button className="pagination__btn" onClick={() => setProdPage(p => Math.max(1, p - 1))} disabled={prodPage === 1}>&#8249; הקודם</button>
+                  <span className="pagination__info">דף {prodPage} מתוך {totalProdPages} ({saleProducts.length} מוצרים)</span>
+                  <button className="pagination__btn" onClick={() => setProdPage(p => Math.min(totalProdPages, p + 1))} disabled={prodPage === totalProdPages}>הבא &#8250;</button>
+                </div>
+              )}
+
+              {/* סיכום כספי — רק למכירה סגורה */}
               {!isOpen && summary && (
                 <div className="sale-detail__summary">
                   <span>סה"כ הכנסה: <strong>{formatCurrency(summary['סה"כ מחיר מכירה'])}</strong></span>
@@ -157,11 +175,11 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle }) 
           ) : saleDetail && !saleDetail.error ? (
             // טעינה הסתיימה ואין מוצרים — זה אמיתי
             <div className="sale-detail__empty">אין מוצרים משויכים למכירה זו עדיין</div>
-          ) : null /* לא מציגים כלום אם טרם טענו */}
+          ) : 'טוען פריטים...' /* לא מציגים כלום אם טרם טענו */}
         </div>
       )}
 
-      {/* מודל הוספת מוצרים */}
+      {/* ─── מודל הוספת מוצרים ─── */}
       <Modal isOpen={addModal} onClose={() => { setAddModal(false); setSelectedProducts([]); }}
         title={`הוספת מוצרים — ${sale.name}`} width="620px">
         <ProductPicker products={activeProducts} selected={selectedProducts} onChange={setSelectedProducts} />
@@ -173,7 +191,7 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle }) 
         </div>
       </Modal>
 
-      {/* מודל סגירת מכירה */}
+      {/* ─── מודל סגירת מכירה ─── */}
       <Modal isOpen={closeModal} onClose={() => setCloseModal(false)}
         title={`סגירת מכירה — ${sale.name}`} width="580px">
         {saleItems && (

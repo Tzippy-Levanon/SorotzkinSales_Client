@@ -14,7 +14,7 @@ const ProductsPage = ({ showToast }) => {
   // page — מספר הדף הנוכחי (מתחיל מ-1)
   // PAGE_SIZE — כמה מוצרים בכל דף
   const [page, setPage] = useState(1);
-  const PAGE_SIZE = 20;
+  const PAGE_SIZE = 15;
 
   const [searchText, setSearchText] = useState('');
   const [filterSupplier, setFilterSupplier] = useState('');
