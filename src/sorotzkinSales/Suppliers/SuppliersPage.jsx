@@ -61,7 +61,7 @@ const SuppliersPage = ({ showToast }) => {
         msg.toLowerCase().includes('already exist') ||
         msg.includes('_key') || msg.includes('23505') ||
         msg.includes('שם זה') || msg.includes('שם זהה') || msg.includes('פרטי קשר') || msg.includes('התקשרות');
-        
+
       if (isDuplicate) {
         showToast('ספק עם שם ופרטי קשר אלו כבר קיים במערכת', 'error');
       } else {
@@ -147,9 +147,9 @@ const SuppliersPage = ({ showToast }) => {
       {/* pagination */}
       {!loading && totalPages > 1 && (
         <div className="pagination">
-          <button className="pagination__btn" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>&#8250; הקודם</button>
+          <button className="pagination__btn" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>&#8249; הקודם</button>
           <span className="pagination__info">דף {page} מתוך {totalPages} ({(suppliers || []).length} ספקים)</span>
-          <button className="pagination__btn" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>הבא &#8249;</button>
+          <button className="pagination__btn" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>הבא &#8250;</button>
         </div>
       )}
 
