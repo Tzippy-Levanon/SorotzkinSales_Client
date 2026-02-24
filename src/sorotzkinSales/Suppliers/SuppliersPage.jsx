@@ -6,7 +6,8 @@ import {
   getSupplierPayments
 } from '../api';
 import { getProducts } from '../api';
-import { Button, Modal, FormField, Input, Select, EmptyState, Spinner } from '../Common/UI';
+import { Button, Modal, FormField, Input, EmptyState, Spinner } from '../Common/UI';
+import AppSelect from '../Common/AppSelect';
 import { formatCurrency, formatDate } from '../utils';
 import SupplierCard from './SupplierCard';
 import SupplierForm from './SupplierForm';
@@ -15,7 +16,6 @@ import PaymentForm from './PaymentForm';
 
 const SuppliersPage = ({ showToast }) => {
   const { data: _suppliersRaw, loading, refetch } = useAsync(getSuppliers);
-  // הגנה מפני מקרה שהשרת מחזיר אובייקט במקום מערך
   const suppliers = Array.isArray(_suppliersRaw) ? _suppliersRaw
     : Array.isArray(_suppliersRaw?.data) ? _suppliersRaw.data
       : null;
@@ -164,14 +164,13 @@ const SuppliersPage = ({ showToast }) => {
 
           {/* שלב 1: בחירת ספק */}
           <FormField label="ספק" required>
-            <Select
+            <AppSelect
+              options={(suppliers || []).map(s => ({ value: s.id, label: s.name }))}
               value={invoiceForm.supplier_id}
-              onChange={e => handleSupplierChange(e.target.value)}
-              style={{ maxHeight: '220px' }}
-            >
-              <option value="">בחר ספק...</option>
-              {(suppliers || []).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </Select>
+              onChange={id => handleSupplierChange(id)}
+              placeholder="בחר ספק..."
+              noOptionsMessage="אין ספקים"
+            />
           </FormField>
 
           {/* שלב 2: בחירת תשלום — מופיע רק אחרי בחירת ספק */}
@@ -179,19 +178,16 @@ const SuppliersPage = ({ showToast }) => {
             {loadingPayments ? (
               <div className="invoice-payments-loading"><Spinner size="sm" /> טוען תשלומים...</div>
             ) : supplierPayments.length > 0 ? (
-              <Select
+              <AppSelect
+                options={supplierPayments.map(p => ({
+                  value: p.id,
+                  label: `${formatDate(p.date)} — ${formatCurrency(p.amount)}${p.payment_method?.name ? ` (${p.payment_method.name})` : ''}`
+                }))}
                 value={invoiceForm.supplier_payment_id}
-                onChange={e => setInvoiceForm(f => ({ ...f, supplier_payment_id: e.target.value }))}
-                style={{ maxHeight: '220px' }}
-              >
-                <option value="">בחר תשלום...</option>
-                {supplierPayments.map(p => (
-                  <option key={p.id} value={p.id}>
-                    {formatDate(p.date)} — {formatCurrency(p.amount)}
-                    {p.payment_method?.name ? ` (${p.payment_method.name})` : ''}
-                  </option>
-                ))}
-              </Select>
+                onChange={id => setInvoiceForm(f => ({ ...f, supplier_payment_id: id }))}
+                placeholder="בחר תשלום..."
+                noOptionsMessage="אין תשלומים"
+              />
             ) : (
               <div className="invoice-no-payments">
                 {invoiceForm.supplier_id ? 'אין תשלומים רשומים לספק זה' : 'יש לבחור ספק תחילה'}

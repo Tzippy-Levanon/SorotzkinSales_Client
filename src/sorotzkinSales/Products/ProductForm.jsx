@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Button, FormField, Input, Select } from '../Common/UI';
+import AppSelect from '../Common/AppSelect';
 
 // ─── ProductForm ──────────────────────────────────────────────────────────
 // טופס הוספה/עריכה של מוצר.
@@ -33,10 +34,13 @@ const ProductForm = ({ initial, suppliers, onSubmit, onClose, loading }) => {
         <Input value={form.name} onChange={e => set('name', e.target.value)} placeholder="שם המוצר" required />
       </FormField>
       <FormField label="ספק" required>
-        <Select value={form.supplier_id} onChange={e => set('supplier_id', e.target.value)} required>
-          <option value="">בחר ספק...</option>
-          {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-        </Select>
+        <AppSelect
+          options={suppliers.map(s => ({ value: s.id, label: s.name }))}
+          value={form.supplier_id}
+          onChange={id => set('supplier_id', id)}
+          placeholder="בחר ספק..."
+          noOptionsMessage="אין ספקים"
+        />
       </FormField>
       <div className="form-grid-2">
         <FormField label="מחיר עלות" required>
@@ -55,10 +59,11 @@ const ProductForm = ({ initial, suppliers, onSubmit, onClose, loading }) => {
       {/* סטטוס — רק בעריכה */}
       {initial && (
         <FormField label="סטטוס">
-          <Select value={String(form.is_active)} onChange={e => set('is_active', e.target.value === 'true')}>
-            <option value="true">פעיל</option>
-            <option value="false">לא פעיל</option>
-          </Select>
+          <AppSelect
+            options={[{ value: 'true', label: 'פעיל' }, { value: 'false', label: 'לא פעיל' }]}
+            value={String(form.is_active)}
+            onChange={v => set('is_active', v === 'true')}
+          />
         </FormField>
       )}
       <div className="form-actions">

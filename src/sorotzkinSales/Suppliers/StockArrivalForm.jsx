@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Button, FormField, Input, Select } from '../Common/UI';
+import AppSelect from '../Common/AppSelect';
 
 const StockArrivalForm = ({ suppliers, products, onSubmit, onClose, loading }) => {
   const [supplierId, setSupplierId] = useState('');
@@ -38,10 +39,13 @@ const StockArrivalForm = ({ suppliers, products, onSubmit, onClose, loading }) =
     <form onSubmit={handleSubmit}>
       <div className="form-grid-2">
         <FormField label="ספק" required>
-          <Select value={supplierId} onChange={e => { setSupplierId(e.target.value); setItems([{ product_id: '', quantity: 1, cost_price: '' }]); }} required>
-            <option value="">בחר ספק...</option>
-            {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-          </Select>
+          <AppSelect
+            options={suppliers.map(s => ({ value: s.id, label: s.name }))}
+            value={supplierId}
+            onChange={id => { setSupplierId(id); setItems([{ product_id: '', quantity: 1, cost_price: '' }]); }}
+            placeholder="בחר ספק..."
+            noOptionsMessage="אין ספקים"
+          />
         </FormField>
         <FormField label="תאריך הגעה" required>
           <Input type="date" value={arrivalDate} onChange={e => setArrivalDate(e.target.value)} required />
@@ -54,10 +58,14 @@ const StockArrivalForm = ({ suppliers, products, onSubmit, onClose, loading }) =
       {items.map((item, idx) => (
         <div key={idx} className="arrival-item-row">
           <FormField label={idx === 0 ? 'מוצר' : undefined} required>
-            <Select value={item.product_id} onChange={e => setItem(idx, 'product_id', e.target.value)} required disabled={!supplierId}>
-              <option value="">בחר מוצר...</option>
-              {supplierProducts.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </Select>
+            <AppSelect
+              options={supplierProducts.map(p => ({ value: p.id, label: `${p.name} (מלאי: ${p.total_in_stock})` }))}
+              value={item.product_id}
+              onChange={id => setItem(idx, 'product_id', id)}
+              placeholder={!supplierId ? 'יש לבחור ספק תחילה' : 'בחר מוצר...'}
+              disabled={!supplierId}
+              noOptionsMessage="אין מוצרים לספק זה"
+            />
           </FormField>
           <FormField label={idx === 0 ? 'כמות' : undefined} required>
             <Input type="number" min="1" value={item.quantity} onChange={e => setItem(idx, 'quantity', e.target.value)} required />

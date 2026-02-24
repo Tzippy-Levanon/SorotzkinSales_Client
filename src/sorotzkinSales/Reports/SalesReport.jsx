@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { getSalesReport, downloadReport, getSales } from '../api';              // תוקן
-import { Button, ExportButtons, Card, Badge, EmptyState, Spinner, StatCard, FormField, Input, Select } from '../Common/UI';
+import { Button, ExportButtons, Card, Badge, EmptyState, Spinner, StatCard, FormField, Input } from '../Common/UI';
+import AppSelect from '../Common/AppSelect';
 import { formatCurrency, formatDate, downloadBlob, exportToPDF, useAsync } from '../utils'; // תוקן
 
 const SalesReport = ({ showToast }) => {
@@ -20,7 +21,7 @@ const SalesReport = ({ showToast }) => {
   const [pdfLoading, setPdfLoading] = useState(false);
 
   const fetchReport = async () => {
-    setLoading(true); 
+    setLoading(true);
     setData(null);
     try {
       const params = {};
@@ -79,20 +80,22 @@ const SalesReport = ({ showToast }) => {
           {/* בחירת מכירה ספציפית — דרופדאון במקום שדה ID */}
           {/* allSales נטען ברקע; כשמבחרים מכירה — saleId מתעדכן */}
           <FormField label="מכירה ספציפית">
-            <Select value={saleId} onChange={e => {
-              setSaleId(e.target.value);
-              // כשבוחרים מכירה ספציפית — מאפסים תאריכים (לא רלוונטיים)
-              if (e.target.value) { setStartDate(''); setEndDate(''); }
-            }}>
-              {/* האפשרות הראשונה: הצג כל המכירות לפי טווח תאריכים */}
-              <option value="">כל המכירות</option>
-              {/* עבור כל מכירה ברשימה — צור אפשרות עם שם, תאריך ואייקון סטטוס */}
-              {(allSales || []).map(s => (
-                <option key={s.id} value={s.id}>
-                  {s.name} — {formatDate(s.date)} {s.status === 'closed' ? '🔒' : '🔓'}
-                </option>
-              ))}
-            </Select>
+            <AppSelect
+              options={[
+                { value: '', label: '                     כל המכירות' },
+                ...(allSales || []).map(s => ({
+                  value: s.id,
+                  label: `${s.name} — ${formatDate(s.date)} ${s.status === 'closed' ? '🔒' : '🔓'}`
+                }))
+              ]}
+              value={saleId}
+              onChange={id => {
+                setSaleId(id);
+                if (id) { setStartDate(''); setEndDate(''); }
+              }}
+              placeholder="כל המכירות"
+              noOptionsMessage="אין מכירות"
+            />
           </FormField>
           {/* עד תאריך מופיע ראשון בJSX כי ב-RTL הראשון מוצג בצד ימין.
               הסדר הנכון בתצוגה (מימין לשמאל): [עד תאריך] [מתאריך] */}

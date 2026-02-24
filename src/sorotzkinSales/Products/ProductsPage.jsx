@@ -5,6 +5,7 @@ import { getSuppliers } from '../api';                              // תוקן:
 import { Button, Modal, Card, EmptyState, Spinner, ConfirmDialog } from '../Common/UI';
 import { formatCurrency } from '../utils';
 import ProductForm from './ProductForm';
+import AppSelect from '../Common/AppSelect';
 import ProductsTable from './ProductsTable';
 
 const ProductsPage = ({ showToast }) => {
@@ -101,14 +102,15 @@ const ProductsPage = ({ showToast }) => {
             style={{ paddingRight: '36px' }}
           />
         </div>
-        <select
-          className="form-select products-filters__select"
-          value={filterSupplier}
-          onChange={e => setFilterSupplier(e.target.value)}
-        >
-          <option value="">כל הספקים</option>
-          {(suppliers || []).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-        </select>
+        <div className="products-filters__select">
+          <AppSelect
+            options={[{ value: '', label: 'כל הספקים' }, ...(suppliers || []).map(s => ({ value: s.id, label: s.name }))]}
+            value={filterSupplier}
+            onChange={id => setFilterSupplier(id)}
+            placeholder="כל הספקים"
+            noOptionsMessage="אין ספקים"
+          />
+        </div>
         <label className="products-filters__checkbox">
           <input type="checkbox" checked={filterOutOfStock} onChange={e => setFilterOutOfStock(e.target.checked)} />
           אזלו מהמלאי

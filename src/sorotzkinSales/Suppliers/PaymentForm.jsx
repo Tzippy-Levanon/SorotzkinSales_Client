@@ -10,7 +10,8 @@ import { useAsync } from '../utils';
 import { getPaymentMethods } from '../api';
 
 // ייבוא קומפוננטות UI משותפות של האתר
-import { Button, FormField, Select, Input } from '../Common/UI';
+import { Button, FormField, Input } from '../Common/UI';
+import AppSelect from '../Common/AppSelect';
 
 // formatCurrency — הופך מספר למחרוזת מטבע: 1500 → "₪1,500.00"
 import { formatCurrency } from '../utils';
@@ -62,18 +63,13 @@ const PaymentForm = ({ suppliers, onSubmit, onClose, loading }) => {
       {/* ─── בחירת ספק ─────────────────────────────────────────────────── */}
       {/* מציג את כל הספקים עם שמם וחובם הנוכחי */}
       <FormField label="ספק" required>
-        <Select
+        <AppSelect
+          options={(suppliers || []).map(s => ({ value: s.id, label: `${s.name} — חוב: ₪${(s.balance || 0).toLocaleString('he-IL', { minimumFractionDigits: 2 })}` }))}
           value={form.supplier_id}
-          onChange={e => set('supplier_id', e.target.value)}
-          required
-        >
-          <option value="">בחר ספק...</option>
-          {(suppliers || []).map(s => (
-            <option key={s.id} value={s.id}>
-              {s.name} — חוב: {formatCurrency(s.balance)}
-            </option>
-          ))}
-        </Select>
+          onChange={id => set('supplier_id', id)}
+          placeholder="בחר ספק..."
+          noOptionsMessage="אין ספקים"
+        />
       </FormField>
 
       {/* ─── סכום ותאריך בשורה אחת ─────────────────────────────────────── */}
@@ -105,20 +101,14 @@ const PaymentForm = ({ suppliers, onSubmit, onClose, loading }) => {
           בזמן הטעינה — הדרופדאון מושבת ומציג "טוען..."
           אחרי הטעינה — מציג את כל האפשרויות מה-DB */}
       <FormField label="אמצעי תשלום" required>
-        <Select
+        <AppSelect
+          options={(paymentMethods || []).map(m => ({ value: m.id, label: m.name }))}
           value={form.payment_method_id}
-          onChange={e => set('payment_method_id', e.target.value)}
-          required
-          disabled={loadingMethods}  /* נעול בזמן טעינה */
-        >
-          <option value="">
-            {loadingMethods ? 'טוען אמצעי תשלום...' : 'בחר אמצעי תשלום...'}
-          </option>
-          {/* paymentMethods מגיע מהשרת — מערך של { id, name } */}
-          {(paymentMethods || []).map(m => (
-            <option key={m.id} value={m.id}>{m.name}</option>
-          ))}
-        </Select>
+          onChange={id => set('payment_method_id', id)}
+          placeholder={loadingMethods ? 'טוען אמצעי תשלום...' : 'בחר אמצעי תשלום...'}
+          disabled={loadingMethods}
+          noOptionsMessage="אין אמצעי תשלום"
+        />
       </FormField>
 
       {/* ─── כפתורי פעולה ───────────────────────────────────────────────── */}
