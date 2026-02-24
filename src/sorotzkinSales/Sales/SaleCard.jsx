@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Button, Badge, Modal, Spinner } from '../Common/UI';
 import { formatDate, formatCurrency } from '../utils';
-import { addProductsToSale, closeSale, getSaleDetail } from '../api';
+import { addProductsToSale, closeSale, getSaleDetail, removeSaleItem } from '../api';
 import ProductPicker from './ProductPicker';
 import CloseSaleForm from './CloseSaleForm';
 
@@ -61,6 +61,21 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle }) 
     finally { setLoading(false); }
   };
 
+  const handleRemoveProduct = async (productName) => {
+    if (!window.confirm(`האם להסיר את "${productName}" מהמכירה?`)) return;
+    setLoading(true);
+    try {
+      // מוצא את product_id לפי שם
+      const prod = (products || []).find(p => p.name === productName);
+      if (!prod) return showToast('לא נמצא המוצר', 'error');
+      await removeSaleItem(sale.id, prod.id);
+      showToast('המוצר הוסר מהמכירה');
+      const data = await getSaleDetail(sale.id);
+      setSaleDetail(data);
+    } catch (e) { showToast(e.message, 'error'); }
+    finally { setLoading(false); }
+  };
+
   const handleAddProducts = async () => {
     if (!selectedProducts.length) return showToast('יש לבחור לפחות מוצר אחד', 'error');
     setLoading(true);
@@ -71,7 +86,19 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle }) 
       // רענן פרטים
       const data = await getSaleDetail(sale.id);
       setSaleDetail(data);
-    } catch (e) { showToast(e.message, 'error'); }
+    } catch (e) {
+      const msg = e.message || '';
+      if (msg.includes('חוסר במלאי')) {
+        const prodMatch = msg.match(/מוצר (\d+)/);
+        const stockMatch = msg.match(/במלאי: (\d+)/);
+        const prodName = prodMatch
+          ? (products || []).find(p => p.id === Number(prodMatch[1]))?.name || `מוצר ${prodMatch[1]}`
+          : 'מוצר';
+        showToast(`אין מספיק מלאי עבור "${prodName}"${stockMatch ? ` — נותר: ${stockMatch[1]}` : ''}`, 'error');
+      } else {
+        showToast(msg || 'שגיאה בהוספת המוצרים', 'error');
+      }
+    }
     finally { setLoading(false); }
   };
 
@@ -140,6 +167,7 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle }) 
                     {!isOpen && <th>חזר</th>}
                     {!isOpen && <th>סה"כ עלות</th>}
                     {!isOpen && <th>סה"כ הכנסה</th>}
+                    {isOpen && <th></th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -151,6 +179,13 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle }) 
                       {!isOpen && <td>{p['חזר'] ?? '—'}</td>}
                       {!isOpen && <td>{p['סה"כ מחיר עלות'] != null ? formatCurrency(p['סה"כ מחיר עלות']) : '—'}</td>}
                       {!isOpen && <td>{p['סה"כ מחיר מכירה'] != null ? formatCurrency(p['סה"כ מחיר מכירה']) : '—'}</td>}
+                      {isOpen && (
+                        <td>
+                          <button type="button" className="sale-item__remove-btn"
+                            onClick={() => handleRemoveProduct(p['מוצר'])}
+                            title="הסר מוצר מהמכירה">✕</button>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -195,7 +230,7 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle }) 
       <Modal isOpen={closeModal} onClose={() => setCloseModal(false)}
         title={`סגירת מכירה — ${sale.name}`} width="580px">
         {saleItems && (
-          <CloseSaleForm saleId={sale.id} saleItems={saleItems}
+          <CloseSaleForm saleId={sale.id} saleItems={saleItems} products={products}
             onSubmit={handleCloseSale} onClose={() => setCloseModal(false)} loading={loading} />
         )}
       </Modal>

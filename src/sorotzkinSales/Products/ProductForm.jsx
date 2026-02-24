@@ -50,12 +50,9 @@ const ProductForm = ({ initial, suppliers, onSubmit, onClose, loading }) => {
           <Input type="number" min="0" step="0.01" value={form.selling_price} onChange={e => set('selling_price', e.target.value)} placeholder="0.00" required />
         </FormField>
       </div>
-      {/* כמות במלאי — רק בהוספה, לא בעריכה */}
-      {!initial && (
-        <FormField label="כמות במלאי">
-          <Input type="number" min="0" value={form.total_in_stock} onChange={e => set('total_in_stock', e.target.value)} placeholder="0" />
-        </FormField>
-      )}
+      <FormField label='כמות במלאי'>
+        <Input type="number" min="0" value={form.total_in_stock} onChange={e => set('total_in_stock', e.target.value)} placeholder="0" />
+      </FormField>
       {/* סטטוס — רק בעריכה */}
       {initial && (
         <FormField label="סטטוס">

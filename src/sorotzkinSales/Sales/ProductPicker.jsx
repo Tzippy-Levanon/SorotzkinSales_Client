@@ -17,8 +17,11 @@ const ProductPicker = ({ products, selected, onChange }) => {
       ? prev.filter(x => x.product_id !== id)
       : [...prev, { product_id: id, quantity: 1 }]);
 
-  const setQty = (id, qty) => onChange(prev =>
-    prev.map(x => x.product_id === id ? { ...x, quantity: Math.max(1, Number(qty)) } : x));
+  const setQty = (id, qty, maxStock) => {
+    const val = Math.max(1, Math.min(Number(qty), maxStock));
+    if (Number(qty) > maxStock) alert(`המלאי הזמין עבור מוצר זה הוא ${maxStock} יחידות בלבד`);
+    onChange(prev => prev.map(x => x.product_id === id ? { ...x, quantity: val } : x));
+  };
 
   const isSelected = (id) => selected.some(x => x.product_id === id);
 
@@ -48,7 +51,7 @@ const ProductPicker = ({ products, selected, onChange }) => {
                     <input type="number" className="product-picker__qty-input"
                       min="1" max={p.total_in_stock}
                       value={selected.find(x => x.product_id === p.id)?.quantity || 1}
-                      onChange={e => setQty(p.id, e.target.value)} />
+                      onChange={e => setQty(p.id, e.target.value, p.total_in_stock)} />
                   </div>
                 )}
               </div>
