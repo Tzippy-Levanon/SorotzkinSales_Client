@@ -1,3 +1,4 @@
+import Swal from 'sweetalert2';
 import React, { useState, useMemo } from 'react';
 import { Button, Badge, Modal, Spinner } from '../Common/UI';
 import { formatDate, formatCurrency } from '../utils';
@@ -62,7 +63,18 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle }) 
   };
 
   const handleRemoveProduct = async (productName) => {
-    if (!window.confirm(`האם להסיר את "${productName}" מהמכירה?`)) return;
+    const result = await Swal.fire({
+      title: 'הסרת מוצר',
+      text: `האם להסיר את "${productName}" מהמכירה?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'הסר',
+      cancelButtonText: 'ביטול',
+      confirmButtonColor: '#c0392b',
+      cancelButtonColor: '#6b7280',
+      reverseButtons: true,
+    });
+    if (!result.isConfirmed) return;
     setLoading(true);
     try {
       // מוצא את product_id לפי שם

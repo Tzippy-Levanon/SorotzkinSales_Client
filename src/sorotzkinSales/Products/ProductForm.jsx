@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, FormField, Input, Select } from '../Common/UI';
+import { Button, FormField, Input } from '../Common/UI';
 import AppSelect from '../Common/AppSelect';
 
 // ─── ProductForm ──────────────────────────────────────────────────────────
@@ -17,8 +17,24 @@ const ProductForm = ({ initial, suppliers, onSubmit, onClose, loading }) => {
   });
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
+  const [errors, setErrors] = useState({});
+
+  const validate = () => {
+    const errs = {};
+    if (Number(form.selling_price) < Number(form.cost_price)) {
+      errs.selling_price = 'מחיר מכירה חייב להיות גדול או שווה למחיר עלות';
+    }
+    return errs;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    const errs = validate();
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
+      return;
+    }
+    setErrors({});
     onSubmit({
       ...form,
       supplier_id: Number(form.supplier_id),
@@ -46,23 +62,24 @@ const ProductForm = ({ initial, suppliers, onSubmit, onClose, loading }) => {
         <FormField label="מחיר עלות" required>
           <Input type="number" min="0" step="0.01" value={form.cost_price} onChange={e => set('cost_price', e.target.value)} placeholder="0.00" required />
         </FormField>
-        <FormField label="מחיר מכירה" required>
-          <Input type="number" min="0" step="0.01" value={form.selling_price} onChange={e => set('selling_price', e.target.value)} placeholder="0.00" required />
+        <FormField label="מחיר מכירה" required error={errors.selling_price}>
+          <Input type="number" min="0" step="0.01" value={form.selling_price} onChange={e => { set('selling_price', e.target.value); setErrors({}); }} placeholder="0.00" required />
         </FormField>
       </div>
-      <FormField label='כמות במלאי'>
-        <Input type="number" min="0" value={form.total_in_stock} onChange={e => set('total_in_stock', e.target.value)} placeholder="0" />
-      </FormField>
-      {/* סטטוס — רק בעריכה */}
-      {initial && (
-        <FormField label="סטטוס">
-          <AppSelect
-            options={[{ value: 'true', label: 'פעיל' }, { value: 'false', label: 'לא פעיל' }]}
-            value={String(form.is_active)}
-            onChange={v => set('is_active', v === 'true')}
-          />
+      <div className="form-grid-2">
+        <FormField label='כמות במלאי'>
+          <Input type="number" min="0" value={form.total_in_stock} onChange={e => set('total_in_stock', e.target.value)} placeholder="0" />
         </FormField>
-      )}
+        {initial && (
+          <FormField label="סטטוס">
+            <AppSelect
+              options={[{ value: 'true', label: 'פעיל' }, { value: 'false', label: 'לא פעיל' }]}
+              value={String(form.is_active)}
+              onChange={v => set('is_active', v === 'true')}
+            />
+          </FormField>
+        )}
+      </div>
       <div className="form-actions">
         <Button variant="ghost" onClick={onClose} type="button">ביטול</Button>
         <Button type="submit" disabled={loading}>{loading ? 'שומר...' : initial ? 'עדכון' : 'הוספה'}</Button>

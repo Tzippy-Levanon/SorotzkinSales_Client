@@ -25,8 +25,16 @@ const StockArrivalForm = ({ suppliers, products, onSubmit, onClose, loading }) =
       return updated;
     }));
 
+  const [errors, setErrors] = useState({});
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    const errs = {};
+    if (arrivalDate && arrivalDate > new Date().toISOString().split('T')[0]) {
+      errs.arrivalDate = 'תאריך הגעה לא יכול להיות בעתיד';
+    }
+    if (Object.keys(errs).length > 0) { setErrors(errs); return; }
+    setErrors({});
     onSubmit({
       supplier_id: Number(supplierId),
       arrival_date: arrivalDate,
@@ -47,8 +55,8 @@ const StockArrivalForm = ({ suppliers, products, onSubmit, onClose, loading }) =
             noOptionsMessage="אין ספקים"
           />
         </FormField>
-        <FormField label="תאריך הגעה" required>
-          <Input type="date" value={arrivalDate} onChange={e => setArrivalDate(e.target.value)} required />
+        <FormField label="תאריך הגעה" required error={errors.arrivalDate}>
+          <Input type="date" value={arrivalDate} onChange={e => { setArrivalDate(e.target.value); setErrors({}); }} max={new Date().toISOString().split("T")[0]} required />
         </FormField>
       </div>
       <FormField label="הערות">

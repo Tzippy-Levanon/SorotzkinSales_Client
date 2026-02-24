@@ -50,15 +50,24 @@ const SuppliersPage = ({ showToast }) => {
   const handleSubmitSupplier = async (form) => {
     setSubmitting(true);
     try {
-      if (editSupplier) {
-        await updateSupplier(editSupplier.id, form);
-        showToast('הספק עודכן בהצלחה');
-      } else {
-        await addSupplier(form);
-        showToast('הספק נוסף בהצלחה');
-      }
+      if (editSupplier) { await updateSupplier(editSupplier.id, form); showToast('הספק עודכן בהצלחה'); }
+      else { await addSupplier(form); showToast('הספק נוסף בהצלחה'); }
       closeModal(); refetch();
-    } catch (e) { showToast(e.message, 'error'); }
+    } catch (e) {
+      const msg = e.message || '';
+      const code = e.code || e.details || '';
+      const isDuplicate = msg.toLowerCase().includes('duplicate') ||
+        msg.toLowerCase().includes('unique') ||
+        msg.toLowerCase().includes('already exist') ||
+        msg.includes('_key') || msg.includes('23505') ||
+        msg.includes('שם זה') || msg.includes('שם זהה') || msg.includes('פרטי קשר') || msg.includes('התקשרות');
+        
+      if (isDuplicate) {
+        showToast('ספק עם שם ופרטי קשר אלו כבר קיים במערכת', 'error');
+      } else {
+        showToast(msg || 'שגיאה בשמירת הספק', 'error');
+      }
+    }
     finally { setSubmitting(false); }
   };
 

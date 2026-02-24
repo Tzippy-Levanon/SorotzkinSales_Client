@@ -47,8 +47,16 @@ const PaymentForm = ({ suppliers, onSubmit, onClose, loading }) => {
   // ── שליחת הטופס ──────────────────────────────────────────────────────────
   // e.preventDefault() מונע טעינה מחדש של הדף (התנהגות ברירת מחדל של form)
   // Number() ממיר את מחרוזות הטופס למספרים כי ה-DB מצפה ל-integer/numeric
+  const [errors, setErrors] = useState({});
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    const errs = {};
+    if (form.date && form.date > new Date().toISOString().split('T')[0]) {
+      errs.date = 'תאריך תשלום לא יכול להיות בעתיד';
+    }
+    if (Object.keys(errs).length > 0) { setErrors(errs); return; }
+    setErrors({});
     onSubmit({
       ...form,
       supplier_id: Number(form.supplier_id),
@@ -86,11 +94,12 @@ const PaymentForm = ({ suppliers, onSubmit, onClose, loading }) => {
             required
           />
         </FormField>
-        <FormField label="תאריך" required>
+        <FormField label="תאריך" required error={errors.date}>
           <Input
             type="date"
             value={form.date}
-            onChange={e => set('date', e.target.value)}
+            onChange={e => { set('date', e.target.value); setErrors({}); }}
+            max={new Date().toISOString().split("T")[0]}
             required
           />
         </FormField>

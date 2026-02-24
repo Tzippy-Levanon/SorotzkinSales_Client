@@ -63,7 +63,17 @@ const ProductsPage = ({ showToast }) => {
         showToast('המוצר נוסף בהצלחה');
       }
       setModalOpen(false); setEditProduct(null); refetch();
-    } catch (e) { showToast(e.message, 'error'); }
+    } catch (e) {
+      const msg = e.message || '';
+      const isDuplicate = msg.toLowerCase().includes('duplicate') ||
+        msg.toLowerCase().includes('unique') ||
+        msg.includes('_key') || msg.includes('23505');
+      if (isDuplicate) {
+        showToast('מוצר עם שם זה כבר קיים במלאי — לא ניתן להוסיפו שנית', 'error');
+      } else {
+        showToast(msg || 'שגיאה בשמירת המוצר', 'error');
+      }
+    }
     finally { setSubmitting(false); }
   };
 
@@ -105,7 +115,7 @@ const ProductsPage = ({ showToast }) => {
         <div className="products-filters__select">
           <AppSelect
             options={[{ value: '', label: 'כל הספקים' }, ...(suppliers || []).map(s => ({ value: s.id, label: s.name }))]}
-            value={filterSupplier}
+          value={filterSupplier}
             onChange={id => setFilterSupplier(id)}
             placeholder="כל הספקים"
             noOptionsMessage="אין ספקים"

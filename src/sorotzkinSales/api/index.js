@@ -9,7 +9,8 @@ const TIMEOUT_MS = 12000;
 const fetchWithTimeout = (url, options = {}) => {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), TIMEOUT_MS);
-  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(id));
+  return fetch(url, { ...options, signal: controller.signal })
+    .finally(() => clearTimeout(id));
 };
 
 const handleResponse = async (res) => {
@@ -19,8 +20,10 @@ const handleResponse = async (res) => {
 };
 
 const handleNetworkError = (e) => {
-  if (e.name === 'AbortError') throw new Error('הבקשה אורכת יותר מדי זמן');
+  if (e.name === 'AbortError') throw new Error('הבקשה אורכת יותר מדי זמן — בדוק חיבור לשרת');
   if (!navigator.onLine) throw new Error('אין חיבור לאינטרנט');
+  // אם השגיאה כבר מ-handleResponse (שגיאת שרת כמו 400/409) — העבר אותה כמו שהיא
+  if (e.message && !e.message.includes('fetch') && !e.message.includes('Failed')) throw e;
   throw new Error('השרת אינו זמין כרגע — נסה שוב מאוחר יותר');
 };
 

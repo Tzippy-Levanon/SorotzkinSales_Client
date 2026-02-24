@@ -1,10 +1,11 @@
+import Swal from 'sweetalert2';
 import React, { useState } from 'react';
 import { Button } from '../Common/UI';
 
 // ─── CloseSaleForm ────────────────────────────────────────────────────────
 // טופס סגירת מכירה — מזין כמות שנותרה לכל מוצר ומחשב כמה נמכר.
 // saleId: מזהה המכירה. saleItems: [{product_id, opening_stock, products:{name}}]
-const CloseSaleForm = ({ saleId, saleItems, onSubmit, onClose, loading }) => {
+const CloseSaleForm = ({ saleId, saleItems, onSubmit, onClose, loading, products }) => {
   const [remaining, setRemaining] = useState(
     Object.fromEntries(saleItems.map(i => [i.product_id, i.opening_stock]))
   );
@@ -15,8 +16,35 @@ const CloseSaleForm = ({ saleId, saleItems, onSubmit, onClose, loading }) => {
       [id]: Math.max(0, Math.min(Number(val), saleItems.find(i => i.product_id === id)?.opening_stock ?? Infinity))
     }));
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // בדיקת חוסר מלאי
+    const warnings = [];
+    saleItems.forEach(item => {
+      const rem = remaining[item.product_id] ?? 0;
+      const sold = item.opening_stock - rem;
+      const inStock = (products || []).find(p => p.id === item.product_id)?.total_in_stock ?? 0;
+      if (sold > inStock) {
+        warnings.push(`<li><strong>${item.products?.name}</strong> — נמכר: ${sold}, זמין במלאי: ${inStock}</li>`);
+      }
+    });
+
+    if (warnings.length > 0) {
+      const result = await Swal.fire({
+        title: 'שים לב — חוסר מלאי',
+        html: `<p>הפריטים הבאים חורגים מהמלאי הקיים. המלאי יעודכן ל-0 עבורם:</p><ul style="text-align:right;margin-top:8px">${warnings.join('')}</ul>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'המשך בכל זאת',
+        cancelButtonText: 'חזרה לטופס',
+        confirmButtonColor: '#b8972a',
+        cancelButtonColor: '#6b7280',
+        reverseButtons: true,
+      });
+      if (!result.isConfirmed) return;
+    }
+
     onSubmit(saleId, saleItems.map(i => ({ product_id: i.product_id, remaining_quantity: remaining[i.product_id] ?? 0 })));
   };
 

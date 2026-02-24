@@ -18,6 +18,10 @@ const LoginPage = ({ onLogin }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      setError('כתובת המייל אינה תקינה');
+      return;
+    }
     setLoading(true); setError('');
     try {
       const user = await login(form);
