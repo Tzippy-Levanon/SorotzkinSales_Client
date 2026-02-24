@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from 'react';
-import { useAsync } from '../utils';                                       // תוקן
+import { useAsync } from '../utils';
 import {
   getSuppliers, addSupplier, updateSupplier,
   recordStockArrival, recordPayment, uploadInvoice,
   getSupplierPayments
-} from '../api'; // תוקן
-import { getProducts } from '../api';                                      // תוקן
-import { Button, Modal, FormField, Input, Select, Card, EmptyState, Spinner } from '../Common/UI';
+} from '../api';
+import { getProducts } from '../api';
+import { Button, Modal, FormField, Input, Select, EmptyState, Spinner } from '../Common/UI';
 import { formatCurrency, formatDate } from '../utils';
 import SupplierCard from './SupplierCard';
 import SupplierForm from './SupplierForm';
@@ -21,15 +21,31 @@ const SuppliersPage = ({ showToast }) => {
       : null;
   const { data: products } = useAsync(getProducts);
 
-  const [modal, setModal] = useState(null); // 'add'|'edit'|'arrival'|'payment'|'invoice'
+  const [modal, setModal] = useState(null);
   const [editSupplier, setEditSupplier] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // ─── העלאת חשבונית ───────────────────────────────────────────────────────
   const [invoiceFile, setInvoiceFile] = useState(null);
-  const [invoiceForm, setInvoiceForm] = useState({ supplier_id: '', supplier_payment_id: '', amount: '', reference_number: '' });
+  const [invoiceForm, setInvoiceForm] = useState({
+    supplier_id: '', supplier_payment_id: '', amount: '', reference_number: ''
+  });
   const [supplierPayments, setSupplierPayments] = useState([]);
   const [loadingPayments, setLoadingPayments] = useState(false);
 
-  const closeModal = () => { setModal(null); setEditSupplier(null); };
+  // ─── pagination ──────────────────────────────────────────────────────────
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 12;
+  const totalDebt = useMemo(() => (suppliers || []).reduce((s, sup) => s + (sup.balance || 0), 0), [suppliers]);
+  const totalPages = Math.max(1, Math.ceil((suppliers?.length || 0) / PAGE_SIZE));
+  const paginated = (suppliers || []).slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  const closeModal = () => {
+    setModal(null); setEditSupplier(null);
+    setInvoiceFile(null);
+    setInvoiceForm({ supplier_id: '', supplier_payment_id: '', amount: '', reference_number: '' });
+    setSupplierPayments([]);
+  };
 
   const handleSubmitSupplier = async (form) => {
     setSubmitting(true);
@@ -60,14 +76,14 @@ const SuppliersPage = ({ showToast }) => {
     finally { setSubmitting(false); }
   };
 
-  // כשנבחר ספק — טוען את רשימת התשלומים שלו
+  // כשנבחר ספק בטופס חשבונית — טוען את התשלומים שלו
   const handleSupplierChange = async (supplierId) => {
     setInvoiceForm(f => ({ ...f, supplier_id: supplierId, supplier_payment_id: '' }));
     if (!supplierId) { setSupplierPayments([]); return; }
     setLoadingPayments(true);
     try {
       const payments = await getSupplierPayments(supplierId);
-      setSupplierPayments(payments || []);
+      setSupplierPayments(Array.isArray(payments) ? payments : []);
     } catch (_) { setSupplierPayments([]); }
     finally { setLoadingPayments(false); }
   };
@@ -81,7 +97,7 @@ const SuppliersPage = ({ showToast }) => {
     try {
       const fd = new FormData();
       fd.append('file', invoiceFile);
-      if (invoiceForm.supplier_payment_id) fd.append('supplier_payment_id', invoiceForm.supplier_payment_id);
+      fd.append('supplier_payment_id', invoiceForm.supplier_payment_id);
       if (invoiceForm.amount) fd.append('amount', invoiceForm.amount);
       if (invoiceForm.reference_number) fd.append('reference_number', invoiceForm.reference_number);
       await uploadInvoice(fd);
@@ -89,8 +105,6 @@ const SuppliersPage = ({ showToast }) => {
     } catch (e) { showToast(e.message, 'error'); }
     finally { setSubmitting(false); }
   };
-
-  const totalDebt = useMemo(() => (suppliers || []).reduce((s, sup) => s + (sup.balance || 0), 0), [suppliers]);
 
   return (
     <div>
@@ -115,12 +129,22 @@ const SuppliersPage = ({ showToast }) => {
         <EmptyState icon="🏢" title="אין ספקים" description="הוסף ספק ראשון" />
       ) : (
         <div className="suppliers-grid">
-          {suppliers.map(s => (
+          {paginated.map(s => (
             <SupplierCard key={s.id} supplier={s} onEdit={() => { setEditSupplier(s); setModal('edit'); }} />
           ))}
         </div>
       )}
 
+      {/* pagination */}
+      {!loading && totalPages > 1 && (
+        <div className="pagination">
+          <button className="pagination__btn" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>&#8250; הקודם</button>
+          <span className="pagination__info">דף {page} מתוך {totalPages} ({(suppliers || []).length} ספקים)</span>
+          <button className="pagination__btn" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>הבא &#8249;</button>
+        </div>
+      )}
+
+      {/* ─── מודאלים ─── */}
       <Modal isOpen={modal === 'add'} onClose={closeModal} title="הוספת ספק חדש">
         <SupplierForm onSubmit={handleSubmitSupplier} onClose={closeModal} loading={submitting} />
       </Modal>
@@ -133,20 +157,24 @@ const SuppliersPage = ({ showToast }) => {
       <Modal isOpen={modal === 'payment'} onClose={closeModal} title="רישום תשלום לספק" width="500px">
         <PaymentForm suppliers={suppliers || []} onSubmit={handlePayment} onClose={closeModal} loading={submitting} />
       </Modal>
+
+      {/* ─── העלאת חשבונית — ספק → תשלום → קובץ ─── */}
       <Modal isOpen={modal === 'invoice'} onClose={closeModal} title="העלאת חשבונית / קבלה" width="480px">
-        <form onSubmit={handleUploadInvoice}>
-          {/* ─── בחירת ספק ─── */}
+        <form onSubmit={handleUploadInvoice} noValidate>
+
+          {/* שלב 1: בחירת ספק */}
           <FormField label="ספק" required>
             <Select
-              value={invoiceForm.supplier_id || ''}
+              value={invoiceForm.supplier_id}
               onChange={e => handleSupplierChange(e.target.value)}
-              required
+              style={{ maxHeight: '220px' }}
             >
               <option value="">בחר ספק...</option>
               {(suppliers || []).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
             </Select>
           </FormField>
-          {/* ─── בחירת תשלום — dropdown לפי הספק שנבחר ─── */}
+
+          {/* שלב 2: בחירת תשלום — מופיע רק אחרי בחירת ספק */}
           <FormField label="תשלום" required>
             {loadingPayments ? (
               <div className="invoice-payments-loading"><Spinner size="sm" /> טוען תשלומים...</div>
@@ -154,7 +182,7 @@ const SuppliersPage = ({ showToast }) => {
               <Select
                 value={invoiceForm.supplier_payment_id}
                 onChange={e => setInvoiceForm(f => ({ ...f, supplier_payment_id: e.target.value }))}
-                required
+                style={{ maxHeight: '220px' }}
               >
                 <option value="">בחר תשלום...</option>
                 {supplierPayments.map(p => (
@@ -170,16 +198,20 @@ const SuppliersPage = ({ showToast }) => {
               </div>
             )}
           </FormField>
+
+          {/* שלב 3: קובץ + פרטים נוספים */}
           <FormField label="קובץ (PDF / תמונה / Word)" required>
             <input type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
               className="form-input" onChange={e => setInvoiceFile(e.target.files[0])} />
           </FormField>
           <div className="form-grid-2">
             <FormField label="סכום חשבונית">
-              <Input type="number" value={invoiceForm.amount} onChange={e => setInvoiceForm(f => ({ ...f, amount: e.target.value }))} placeholder="0.00" />
+              <Input type="number" value={invoiceForm.amount}
+                onChange={e => setInvoiceForm(f => ({ ...f, amount: e.target.value }))} placeholder="0.00" />
             </FormField>
             <FormField label="מספר חשבונית">
-              <Input value={invoiceForm.reference_number} onChange={e => setInvoiceForm(f => ({ ...f, reference_number: e.target.value }))} placeholder="מס' חשבונית" />
+              <Input value={invoiceForm.reference_number}
+                onChange={e => setInvoiceForm(f => ({ ...f, reference_number: e.target.value }))} placeholder="מס' חשבונית" />
             </FormField>
           </div>
           <div className="form-actions">
