@@ -9,7 +9,7 @@ const TIMEOUT_MS = 12000;
 const fetchWithTimeout = (url, options = {}) => {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), TIMEOUT_MS);
-  return fetch(url, { ...options, signal: controller.signal })
+  return fetch(url, { ...options, signal: controller.signal, credentials: 'include' })
     .finally(() => clearTimeout(id));
 };
 

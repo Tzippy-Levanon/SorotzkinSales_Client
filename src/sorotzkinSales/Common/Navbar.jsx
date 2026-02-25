@@ -8,24 +8,21 @@ const NAV_ITEMS = [
   { to: '/reports', label: 'דוחות', icon: '◉' },
 ];
 
-const Navbar = ({ user, onLogout }) => (
+const Navbar = ({ onLogout }) => (
   <nav className="navbar">
     <NavLink to="/" className="navbar__logo">
       <span className="navbar__logo-text">אתר ניהולי — ת.ת. סורוצקין</span>
     </NavLink>
     <div className="navbar__links">
       {NAV_ITEMS.map(item => (
-        <NavLink
-          key={item.to} to={item.to}
-          className={({ isActive }) => `navbar__link${isActive ? ' active' : ''}`}
-        >
+        <NavLink key={item.to} to={item.to}
+          className={({ isActive }) => `navbar__link${isActive ? ' active' : ''}`}>
           <span className="navbar__link-icon">{item.icon}</span>
           {item.label}
         </NavLink>
       ))}
     </div>
     <div className="navbar__user">
-      {user?.email && <span className="navbar__user-name">{user.email}</span>}
       <button className="navbar__logout" onClick={onLogout}>יציאה</button>
     </div>
   </nav>

@@ -43,17 +43,17 @@ const App = () => {
   return (
     <BrowserRouter>
       {/* האפליקציה תמיד מוצגת — מטושטשת כשלא מחוברים */}
-      {/* <div className={user ? '' : 'app-blurred'}> */}
+      <div className={user ? '' : 'app-blurred'}>
       <Navbar user={user} onLogout={handleLogout} />
       <main className="page-wrapper">
         <div className="page-content">
           <Routing showToast={showToast} />
         </div>
       </main>
-      {/* </div> */}
+      </div>
 
       {/* Login overlay — מוצג מעל האפליקציה המטושטשת */}
-      {/* {!user && <LoginPage onLogin={setUser} />} */}
+      {!user && <LoginPage onLogin={setUser} />}
 
       <div className="toast-container">
         {toasts.map(t => (

@@ -459,14 +459,11 @@
 .login-error {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  background: var(--danger-subtle);
-  border: 1px solid #f5c6cb;
-  border-radius: var(--radius-sm);
+  gap: 6px;
   color: var(--danger);
-  font-size: 0.87rem;
+  font-size: 0.85rem;
   font-weight: 500;
+  padding: 4px 2px;
 }
 
 .login-btn {
@@ -523,18 +520,26 @@
   margin-bottom: 24px;
 }
 
+.login-logo__site-name {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f1c40;
+  letter-spacing: 0.04em;
+}
+
 .login-logo__text {
   font-family: var(--font-display);
   font-size: 1.1rem;
   font-weight: 700;
-  color: var(--primary);
+  color: #0f1c40;
 }
 
 .login-title {
   font-family: var(--font-display);
   font-size: 1.8rem;
   font-weight: 800;
-  color: var(--primary);
+  color: #0f1c40;
   text-align: center;
   margin-bottom: 6px;
 }
@@ -585,18 +590,6 @@
 
 .login-input--error {
   border-color: var(--danger);
-}
-
-.login-error {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  background: #fff5f5;
-  border: 1px solid var(--danger);
-  border-radius: var(--radius-sm);
-  color: var(--danger);
-  font-size: 0.87rem;
 }
 
 .login-btn {
