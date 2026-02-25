@@ -52,8 +52,8 @@ const SupplierCard = ({ supplier, onEdit }) => {
       window.open(fileUrl, '_blank');
     } else {
       // אחרת — בנה URL מלא לשרת
-      const serverBase = import.meta.env.VITE_API_URL
-        ? import.meta.env.VITE_API_URL.replace('/api', '')
+      const serverBase = import.meta.env.REACR_API_URL
+        ? import.meta.env.REACT_API_URL.replace('/api', '')
         : 'http://localhost:5000';
       window.open(`${serverBase}/${fileUrl}`, '_blank');
     }
