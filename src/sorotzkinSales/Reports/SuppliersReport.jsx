@@ -69,9 +69,7 @@ const SuppliersReport = ({ showToast }) => {
                     <td className="suppliers-table__company">{s['שם חברה'] || '—'}</td>
                     <td>{s['טלפון'] || '—'}</td>
                     <td>{s['מייל'] || '—'}</td>
-                    <td className={(s['יתרת חוב'] || 0) > 0 ? 'debt--owed' : ''}>
-                      {formatCurrency(s['יתרת חוב'])}
-                    </td>
+                    <td >{formatCurrency(s['יתרת חוב'])}</td>
                   </tr>
                 ))}
               </tbody>

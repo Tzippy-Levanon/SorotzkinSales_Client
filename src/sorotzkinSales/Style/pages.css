@@ -393,18 +393,10 @@
 }
 
 .supplier-card__balance {
-   border-radius: var(--radius-md);
-   padding: 12px;
-}
-
-.supplier-card__balance--owed {
-   background: #fff8e1;
-   border: 1px solid #f9a825;
-}
-
-.supplier-card__balance--clear {
    background: var(--surface-2);
    border: 1px solid var(--border);
+   border-radius: var(--radius-md);
+   padding: 12px;
 }
 
 .supplier-card__balance-label {
@@ -418,13 +410,6 @@
 .supplier-card__balance-amount {
    font-weight: 800;
    font-size: 1.3rem;
-}
-
-.supplier-card__balance-amount--owed {
-   color: #e65100;
-}
-
-.supplier-card__balance-amount--clear {
    color: var(--text);
 }
 
@@ -572,11 +557,6 @@
 .profit--negative {
    font-weight: 700;
    color: var(--danger);
-}
-
-.debt--owed {
-   font-weight: 700;
-   color: #e65100;
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -973,10 +953,4 @@
    padding: 0 4px;
    font-size: 1rem;
    user-select: none;
-}
-
-.pagination__info {
-   font-size: 0.82rem;
-   color: var(--text-muted);
-   margin-right: 6px;
 }

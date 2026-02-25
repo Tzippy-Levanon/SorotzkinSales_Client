@@ -84,9 +84,9 @@ const SupplierCard = ({ supplier, onEdit }) => {
       </div>
 
       {/* ─── יתרת חוב ──────────────────────────────────────────────────── */}
-      <div className={`supplier-card__balance ${hasDebt ? 'supplier-card__balance--owed' : 'supplier-card__balance--clear'}`}>
+      <div className="supplier-card__balance">
         <div className="supplier-card__balance-label">יתרת חוב</div>
-        <div className={`supplier-card__balance-amount ${hasDebt ? 'supplier-card__balance-amount--owed' : 'supplier-card__balance-amount--clear'}`}>
+        <div className="supplier-card__balance-amount">
           {formatCurrency(supplier.balance)}
         </div>
       </div>

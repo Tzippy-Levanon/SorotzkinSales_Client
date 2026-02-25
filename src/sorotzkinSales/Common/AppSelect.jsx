@@ -10,9 +10,9 @@ const getStyles = () => ({
     control: (base, state) => ({
         ...base,
         minHeight: '38px',
-        borderColor: state.isFocused ? '#b8972a' : '#d4d9e8',
+        borderColor: '#d4d9e8',
         borderRadius: '4px',
-        boxShadow: state.isFocused ? '0 0 0 1px #b8972a' : 'none',
+        boxShadow: 'none',
         backgroundColor: '#ffffff',
         fontFamily: 'inherit',
         fontSize: '0.9rem',
@@ -29,10 +29,15 @@ const getStyles = () => ({
         minWidth: '100%',
         width: 'max-content',
     }),
-    menuList: (base) => ({ ...base, maxHeight: '240px', padding: '4px 0', overflowX: 'hidden' }),
+    menuList: (base) => ({
+        ...base,
+        maxHeight: '240px',
+        padding: '4px 0',
+        overflowX: 'hidden'
+    }),
     option: (base, state) => ({
         ...base,
-        backgroundColor: state.isSelected || state.isFocused ? '#fdf5e0' : '#ffffff',
+        backgroundColor: state.isSelected || state.isFocused ? '#e4e6ed' : '#ffffff',
         color: state.isSelected ? '#b8972a' : '#1a2035',
         fontWeight: state.isSelected ? 600 : 400,
         fontSize: '0.9rem',
@@ -41,11 +46,26 @@ const getStyles = () => ({
         direction: 'rtl',
         whiteSpace: 'nowrap',
     }),
-    placeholder: (base) => ({ ...base, color: '#5a6480' }),
-    singleValue: (base) => ({ ...base, color: '#1a2035' }),
-    indicatorSeparator: () => ({ display: 'none' }),
-    dropdownIndicator: (base) => ({ ...base, color: '#5a6480' }),
-    noOptionsMessage: (base) => ({ ...base, direction: 'rtl', fontSize: '0.9rem' }),
+    placeholder: (base) => ({
+        ...base,
+        color: '#5a6480'
+    }),
+    singleValue: (base) => ({
+        ...base,
+        color: '#1a2035'
+    }),
+    indicatorSeparator: () => ({
+        display: 'none'
+    }),
+    dropdownIndicator: (base) => ({
+        ...base,
+        color: '#5a6480'
+    }),
+    noOptionsMessage: (base) => ({
+        ...base,
+        direction: 'rtl',
+        fontSize: '0.9rem'
+    }),
 });
 
 const AppSelect = ({
