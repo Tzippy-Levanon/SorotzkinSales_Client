@@ -1,3 +1,4 @@
+import Pagination from '../Common/Pagination';
 import React, { useState } from 'react';
 import { Button, Badge, Spinner, Modal } from '../Common/UI';
 import { formatCurrency, formatDate } from '../utils';
@@ -155,19 +156,11 @@ const SupplierCard = ({ supplier, onEdit }) => {
             </table>
 
             {/* ─── Pagination — מוצג רק אם יש יותר מ-5 תשלומים ─────────── */}
-            {totalPages > 1 && (
-              <div className="pagination" style={{ marginTop: '16px' }}>
-                <button className="pagination__btn"
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  disabled={page === 1}>&#8249; הקודם</button>
-                <span className="pagination__info">
-                  דף {page} מתוך {totalPages} ({allPayments.length} תשלומים)
-                </span>
-                <button className="pagination__btn"
-                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}>הבא &#8250;</button>
-              </div>
-            )}
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              onChange={setPage}
+            />
           </>
         )}
       </Modal>

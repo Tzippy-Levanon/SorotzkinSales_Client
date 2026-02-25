@@ -1,3 +1,4 @@
+import Pagination from '../Common/Pagination';
 import React, { useState } from 'react';
 import { getInventoryReport, downloadReport } from '../api';           // תוקן
 import { Button, ExportButtons, Card, Badge, EmptyState, Spinner, StatCard } from '../Common/UI';
@@ -86,13 +87,11 @@ const InventoryReport = ({ showToast }) => {
           </Card>
 
           {/* pagination לדוח מלאי */}
-          {totalPages > 1 && (
-            <div className="pagination">
-              <button className="pagination__btn" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>&#8249; הקודם</button>
-              <span className="pagination__info">דף {page} מתוך {totalPages} ({inventory.length} מוצרים)</span>
-              <button className="pagination__btn" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>הבא &#8250;</button>
-            </div>
-          )}
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            onChange={setPage}
+          />
         </div>
       )}
     </div>

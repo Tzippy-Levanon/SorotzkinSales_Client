@@ -1,3 +1,4 @@
+import Pagination from '../Common/Pagination';
 import React, { useState, useMemo } from 'react';
 import { useAsync } from '../utils';                              // תוקן: היה ../../hooks/useAsync
 import { getProducts, addProduct, updateProduct } from '../api';     // תוקן: היה ../api/products
@@ -115,7 +116,7 @@ const ProductsPage = ({ showToast }) => {
         <div className="products-filters__select">
           <AppSelect
             options={[{ value: '', label: 'כל הספקים' }, ...(suppliers || []).map(s => ({ value: s.id, label: s.name }))]}
-          value={filterSupplier}
+            value={filterSupplier}
             onChange={id => setFilterSupplier(id)}
             placeholder="כל הספקים"
             noOptionsMessage="אין ספקים"
@@ -155,28 +156,11 @@ const ProductsPage = ({ showToast }) => {
       {/* ─── ניווט דפים (Pagination) ─────────────────────────────────────────
           מוצג רק אם יש יותר מדף אחד.
           הכפתורים מושבתים בקצוות (לא ניתן ללכת לפני דף 1 או אחרי הדף האחרון) */}
-      {!loading && totalPages > 1 && (
-        <div className="pagination">
-          {/* הקודם — page-1, מושבת בדף הראשון */}
-          <button
-            className="pagination__btn"
-            onClick={() => setPage(p => Math.max(1, p - 1))}
-            disabled={page === 1}
-          >&#8249; הקודם</button>
-
-          {/* מידע על הדף הנוכחי */}
-          <span className="pagination__info">
-            דף {page} מתוך {totalPages} ({filtered.length} מוצרים)
-          </span>
-
-          {/* הבא — page+1, מושבת בדף האחרון */}
-          <button
-            className="pagination__btn"
-            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-          >הבא &#8250;</button>
-        </div>
-      )}
+      {!loading && <Pagination
+        page={page}
+        totalPages={totalPages}
+        onChange={setPage}
+      />}
 
       {/* ─── מודל הוספה/עריכה ─── */}
       <Modal

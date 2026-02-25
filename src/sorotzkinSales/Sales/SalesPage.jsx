@@ -1,3 +1,4 @@
+import Pagination from '../Common/Pagination';
 import React, { useState } from 'react';
 import { useAsync } from '../utils';                                    // תוקן
 import { getSales, addSale } from '../api';                              // תוקן
@@ -66,17 +67,11 @@ const SalesPage = ({ showToast }) => {
       )}
 
       {/* ניווט דפים */}
-      {!loading && totalPages > 1 && (
-        <div className="pagination">
-          <button className="pagination__btn"
-            onClick={() => setPage(p => Math.max(1, p - 1))}
-            disabled={page === 1}>&#8249; הקודם</button>
-          <span className="pagination__info">דף {page} מתוך {totalPages} ({(sales || []).length} מכירות)</span>
-          <button className="pagination__btn"
-            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}>הבא &#8250;</button>
-        </div>
-      )}
+      {!loading && <Pagination
+        page={page}
+        totalPages={totalPages}
+        onChange={setPage}
+      />}
 
       {/* ─── מודל מכירה חדשה ─── */}
       <Modal isOpen={newSaleModal} onClose={() => setNewSaleModal(false)} title="מכירה חדשה" width="420px">

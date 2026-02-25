@@ -1,3 +1,4 @@
+import Pagination from '../Common/Pagination';
 import Swal from 'sweetalert2';
 import React, { useState, useMemo } from 'react';
 import { Button, Badge, Modal, Spinner } from '../Common/UI';
@@ -202,14 +203,11 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle }) 
                   ))}
                 </tbody>
               </table>
-              {/* pagination מוצרים — מוצג רק אם יש יותר מ-10 */}
-              {totalProdPages > 1 && (
-                <div className="pagination" style={{ marginTop: '12px' }}>
-                  <button className="pagination__btn" onClick={() => setProdPage(p => Math.max(1, p - 1))} disabled={prodPage === 1}>&#8249; הקודם</button>
-                  <span className="pagination__info">דף {prodPage} מתוך {totalProdPages} ({saleProducts.length} מוצרים)</span>
-                  <button className="pagination__btn" onClick={() => setProdPage(p => Math.min(totalProdPages, p + 1))} disabled={prodPage === totalProdPages}>הבא &#8250;</button>
-                </div>
-              )}
+              <Pagination
+                page={prodPage}
+                totalPages={totalProdPages}
+                onChange={setProdPage}
+              />
 
               {/* סיכום כספי — רק למכירה סגורה */}
               {!isOpen && summary && (

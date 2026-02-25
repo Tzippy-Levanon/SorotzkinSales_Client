@@ -835,43 +835,6 @@
    font-style: italic;
 }
 
-/* ─── Pagination ────────────────────────────────────────────────────────── */
-.pagination {
-   display: flex;
-   align-items: center;
-   justify-content: center;
-   gap: 16px;
-   padding: 20px 0 4px;
-}
-
-.pagination__btn {
-   padding: 8px 18px;
-   border: 1.5px solid var(--border);
-   border-radius: var(--radius-sm);
-   background: var(--surface);
-   color: var(--text);
-   font-family: var(--font-body);
-   font-size: 0.88rem;
-   font-weight: 600;
-   cursor: pointer;
-   transition: border-color 0.15s, color 0.15s;
-}
-
-.pagination__btn:hover:not(:disabled) {
-   border-color: var(--accent);
-   color: var(--accent);
-}
-
-.pagination__btn:disabled {
-   opacity: 0.4;
-   cursor: not-allowed;
-}
-
-.pagination__info {
-   font-size: 0.85rem;
-   color: var(--text-muted);
-}
-
 /* ─── Sale detail table — חלוקת עמודות שווה ────────────────────────────── */
 .sale-detail__table {
    table-layout: fixed;
@@ -912,4 +875,108 @@
 .sale-item__remove-btn:hover {
    color: var(--danger, #c0392b);
    background: #fdecea;
+}
+
+/* ─── ProductPicker — מוצרים שאזלו ─── */
+.product-picker__item--disabled {
+   opacity: 0.5;
+   background: #f5f5f5;
+   cursor: not-allowed;
+   pointer-events: none;
+}
+
+.product-picker__name--disabled {
+   text-decoration: line-through;
+   color: var(--text-muted);
+}
+
+.product-picker__out-of-stock {
+   color: #c0392b;
+   font-weight: 600;
+}
+
+/* ─── Pagination ────────────────────────────────────────────────────────── */
+.pagination {
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   gap: 6px;
+   margin-top: 20px;
+   flex-wrap: wrap;
+}
+
+.pagination__btn {
+   height: 36px;
+   padding: 0 14px;
+   border: 1.5px solid var(--border);
+   border-radius: var(--radius-sm);
+   background: var(--surface);
+   color: var(--text);
+   font-size: 0.9rem;
+   cursor: pointer;
+   transition: all 0.15s;
+   font-family: inherit;
+}
+
+.pagination__btn:hover:not(:disabled) {
+   border-color: var(--accent);
+   color: var(--accent);
+}
+
+.pagination__btn:disabled {
+   opacity: 0.35;
+   cursor: default;
+}
+
+.pagination__pages {
+   display: flex;
+   align-items: center;
+   gap: 4px;
+}
+
+.pagination__page {
+   min-width: 36px;
+   height: 36px;
+   padding: 0 8px;
+   border: 1.5px solid var(--border);
+   border-radius: var(--radius-sm);
+   background: var(--surface);
+   color: var(--text);
+   font-size: 0.88rem;
+   cursor: pointer;
+   transition: all 0.15s;
+   font-family: inherit;
+}
+
+.pagination__page:hover {
+   border-color: var(--accent);
+   color: var(--accent);
+   background: var(--surface);
+}
+
+.pagination__page--active {
+   background: #0f1c40;
+   border-color: #0f1c40;
+   color: #ffffff;
+   font-weight: 700;
+   cursor: default;
+}
+
+.pagination__page--active:hover {
+   background: var(--surface);
+   border-color: #0f1c40;
+   color: #0f1c40;
+}
+
+.pagination__dots {
+   color: var(--text-muted);
+   padding: 0 4px;
+   font-size: 1rem;
+   user-select: none;
+}
+
+.pagination__info {
+   font-size: 0.82rem;
+   color: var(--text-muted);
+   margin-right: 6px;
 }

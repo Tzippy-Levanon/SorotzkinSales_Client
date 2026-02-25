@@ -1,3 +1,4 @@
+import Pagination from '../Common/Pagination';
 import React, { useState, useMemo } from 'react';
 import { useAsync } from '../utils';
 import {
@@ -145,13 +146,11 @@ const SuppliersPage = ({ showToast }) => {
       )}
 
       {/* pagination */}
-      {!loading && totalPages > 1 && (
-        <div className="pagination">
-          <button className="pagination__btn" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>&#8249; הקודם</button>
-          <span className="pagination__info">דף {page} מתוך {totalPages} ({(suppliers || []).length} ספקים)</span>
-          <button className="pagination__btn" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>הבא &#8250;</button>
-        </div>
-      )}
+      {!loading && <Pagination
+        page={page}
+        totalPages={totalPages}
+        onChange={setPage}
+      />}
 
       {/* ─── מודאלים ─── */}
       <Modal isOpen={modal === 'add'} onClose={closeModal} title="הוספת ספק חדש">
