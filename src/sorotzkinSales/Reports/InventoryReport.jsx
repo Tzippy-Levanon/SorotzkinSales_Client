@@ -1,16 +1,17 @@
 import Pagination from '../Common/Pagination';
 import React, { useState } from 'react';
-import { getInventoryReport, downloadReport } from '../api';           // תוקן
+import { getInventoryReport, downloadReport } from '../api';
 import { Button, ExportButtons, Card, Badge, EmptyState, Spinner, StatCard } from '../Common/UI';
-import { formatCurrency, downloadBlob, exportToPDF } from '../utils'; // תוקן
+import { formatCurrency, downloadBlob, exportToPDF } from '../utils';
 
 const InventoryReport = ({ showToast }) => {
   const [data, setData] = useState(null);
   const [page, setPage] = useState(1);
-  const PAGE_SIZE = 15; // 15 שורות בדף לדוחות
+  const PAGE_SIZE = 15;
   const [loading, setLoading] = useState(false);
   const [excelLoading, setExcelLoading] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [excelFilename, setExcelFilename] = useState('דוח מלאי');
 
   const fetchReport = async () => {
     setLoading(true);
@@ -21,22 +22,44 @@ const InventoryReport = ({ showToast }) => {
 
   const handleExcel = async () => {
     setExcelLoading(true);
-    try { downloadBlob(await downloadReport('/reports/inventory?format=excel'), 'דוח_מלאי.xlsx'); }
-    catch (e) { showToast('שגיאה בייצוא Excel', 'error'); }
+    try {
+      const { blob, response } = await downloadReport('/reports/inventory?format=excel');
+      const disposition = response.headers.get('Content-Disposition');
+      let filename = 'דוח מלאי.xlsx';
+      if (disposition) {
+        const match = disposition.match(/filename="?([^"]+)"?/);
+        if (match) filename = decodeURIComponent(match[1]);
+      }
+      setExcelFilename(filename.replace(/\.xlsx$/i, ''));
+      downloadBlob(blob, filename, response);
+    } catch (e) { showToast('שגיאה בייצוא Excel', 'error'); }
     finally { setExcelLoading(false); }
   };
 
   const handlePDF = async () => {
     setPdfLoading(true);
-    try { await exportToPDF('inventory-report', 'דוח_מלאי'); }
+    try { await exportToPDF('inventory-report', excelFilename); }
     catch (e) { showToast('שגיאה בייצוא PDF', 'error'); }
     finally { setPdfLoading(false); }
   };
 
-  // מה השרת מחזיר: { 'תאריך', 'סה"כ מוצרים', 'סה"כ ערך מלאי', 'מוצרים במלאי': [...] }
   const inventory = data?.['מוצרים במלאי'] || [];
   const totalPages = Math.max(1, Math.ceil(inventory.length / PAGE_SIZE));
   const inventoryPag = inventory.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  const InventoryRow = ({ p, hidden = false }) => {
+    const qty = p['כמות במלאי'];
+    const cost = p['מחיר עלות'];
+    return (
+      <tr className={hidden ? 'pdf-show-all' : ''} style={hidden ? { display: 'none' } : {}}>
+        <td><strong>{p['שם מוצר']}</strong></td>
+        <td><strong className={qty === 0 ? 'products-table__stock--zero' : ''}>{qty}</strong></td>
+        <td>{formatCurrency(cost)}</td>
+        <td><strong>{formatCurrency(qty * (cost || 0))}</strong></td>
+        <td><Badge variant={p['סטטוס'] === 'פעיל' ? 'success' : 'danger'}>{p['סטטוס']}</Badge></td>
+      </tr>
+    );
+  };
 
   return (
     <div>
@@ -68,30 +91,19 @@ const InventoryReport = ({ showToast }) => {
                   <tr><th>שם מוצר</th><th>כמות במלאי</th><th>מחיר עלות</th><th>שווי מלאי</th><th>סטטוס</th></tr>
                 </thead>
                 <tbody>
-                  {inventoryPag.map((p, i) => {
-                    const qty = p['כמות במלאי'];
-                    const cost = p['מחיר עלות'];
-                    return (
-                      <tr key={i}>
-                        <td><strong>{p['שם מוצר']}</strong></td>
-                        <td><strong className={qty === 0 ? 'products-table__stock--zero' : ''}>{qty}</strong></td>
-                        <td>{formatCurrency(cost)}</td>
-                        <td><strong>{formatCurrency(qty * (cost || 0))}</strong></td>
-                        <td><Badge variant={p['סטטוס'] === 'פעיל' ? 'success' : 'danger'}>{p['סטטוס']}</Badge></td>
-                      </tr>
-                    );
-                  })}
+                  {inventoryPag.map((p, i) => <InventoryRow key={i} p={p} />)}
+                  {inventory.slice(PAGE_SIZE).map((p, i) => <InventoryRow key={`pdf-${i}`} p={p} hidden />)}
                 </tbody>
               </table>
             </div>
           </Card>
-
-          {/* pagination לדוח מלאי */}
-          <Pagination
-            page={page}
-            totalPages={totalPages}
-            onChange={setPage}
-          />
+          <div className="no-print">
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              onChange={setPage}
+            />
+          </div>
         </div>
       )}
     </div>

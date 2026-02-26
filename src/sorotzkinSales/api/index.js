@@ -88,10 +88,11 @@ export const downloadReport = async (path) => {
   try {
     const controller = new AbortController();
     const id = setTimeout(() => controller.abort(), 30000);
-    const res = await fetch(`${BASE_URL}${path}`, { signal: controller.signal })
+    const res = await fetch(`${BASE_URL}${path}`, { signal: controller.signal, credentials: 'include' })
       .finally(() => clearTimeout(id));
     if (!res.ok) throw new Error('שגיאה בהורדת הדוח');
-    return res.blob();
+    const blob = await res.blob();
+    return { blob, response: res };
   } catch (e) {
     if (e.name === 'AbortError') throw new Error('ההורדה אורכת יותר מדי זמן');
     throw e;

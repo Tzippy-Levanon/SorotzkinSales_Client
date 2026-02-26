@@ -12,10 +12,10 @@ const ProductPicker = ({ products, selected, onChange }) => {
     products.filter(p => p.name.toLowerCase().includes(search.toLowerCase())),
     [products, search]);
 
-  const toggle = (id) => onChange(prev =>
-    prev.find(x => x.product_id === id)
-      ? prev.filter(x => x.product_id !== id)
-      : [...prev, { product_id: id, quantity: 1 }]);
+  const toggle = (prod) => onChange(prev =>
+    prev.find(x => x.product_id === prod.id)
+      ? prev.filter(x => x.product_id !== prod.id)
+      : [...prev, { product_id: prod.id, quantity: prod.total_in_stock }]);
 
   const setQty = (id, qty, maxStock) => {
     const val = Math.max(1, Math.min(Number(qty), maxStock));
@@ -37,11 +37,11 @@ const ProductPicker = ({ products, selected, onChange }) => {
             return (
               <div key={p.id}
                 className={`product-picker__item${sel ? ' product-picker__item--selected' : ''}${outOfStock ? ' product-picker__item--disabled' : ''}`}
-                onClick={() => !outOfStock && toggle(p.id)}
+                onClick={() => !outOfStock && toggle(p)}
               >
                 <input type="checkbox" className="product-picker__checkbox"
                   checked={sel} disabled={outOfStock}
-                  onChange={() => !outOfStock && toggle(p.id)}
+                  onChange={() => !outOfStock && toggle(p)}
                   onClick={e => e.stopPropagation()} />
                 <div className="product-picker__info">
                   <div className={`product-picker__name${outOfStock ? ' product-picker__name--disabled' : ''}`}>{p.name}</div>

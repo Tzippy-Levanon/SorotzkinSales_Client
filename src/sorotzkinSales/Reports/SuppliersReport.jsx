@@ -1,8 +1,8 @@
 import Pagination from '../Common/Pagination';
 import React, { useState } from 'react';
-import { getSuppliersReport, downloadReport } from '../api';          // תוקן
+import { getSuppliersReport, downloadReport } from '../api';
 import { Button, ExportButtons, Card, EmptyState, Spinner, StatCard } from '../Common/UI';
-import { formatCurrency, downloadBlob, exportToPDF } from '../utils'; // תוקן
+import { formatCurrency, downloadBlob, exportToPDF } from '../utils';
 
 const SuppliersReport = ({ showToast }) => {
   const [data, setData] = useState(null);
@@ -11,6 +11,7 @@ const SuppliersReport = ({ showToast }) => {
   const [loading, setLoading] = useState(false);
   const [excelLoading, setExcelLoading] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [excelFilename, setExcelFilename] = useState('דוח ספקים');
 
   const fetchReport = async () => {
     setLoading(true);
@@ -21,14 +22,23 @@ const SuppliersReport = ({ showToast }) => {
 
   const handleExcel = async () => {
     setExcelLoading(true);
-    try { downloadBlob(await downloadReport('/reports/suppliers?format=excel'), 'דוח_ספקים.xlsx'); }
-    catch (e) { showToast('שגיאה בייצוא Excel', 'error'); }
+    try {
+      const { blob, response } = await downloadReport('/reports/suppliers?format=excel');
+      const disposition = response.headers.get('Content-Disposition');
+      let filename = 'דוח ספקים.xlsx';
+      if (disposition) {
+        const match = disposition.match(/filename="?([^"]+)"?/);
+        if (match) filename = decodeURIComponent(match[1]);
+      }
+      setExcelFilename(filename.replace(/\.xlsx$/i, ''));
+      downloadBlob(blob, filename, response);
+    } catch (e) { showToast('שגיאה בייצוא Excel', 'error'); }
     finally { setExcelLoading(false); }
   };
 
   const handlePDF = async () => {
     setPdfLoading(true);
-    try { await exportToPDF('suppliers-report', 'דוח_ספקים'); }
+    try { await exportToPDF('suppliers-report', excelFilename); }
     catch (e) { showToast('שגיאה בייצוא PDF', 'error'); }
     finally { setPdfLoading(false); }
   };
@@ -36,6 +46,16 @@ const SuppliersReport = ({ showToast }) => {
   const suppliers = data?.['ספקים'] || [];
   const totalPages = Math.max(1, Math.ceil(suppliers.length / PAGE_SIZE));
   const suppliersPag = suppliers.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  const SupplierRow = ({ s, hidden = false }) => (
+    <tr className={hidden ? 'pdf-show-all' : ''} style={hidden ? { display: 'none' } : {}}>
+      <td><strong>{s['שם ספק']}</strong></td>
+      <td className="suppliers-table__company">{s['שם חברה'] || '—'}</td>
+      <td>{s['טלפון'] || '—'}</td>
+      <td>{s['מייל'] || '—'}</td>
+      <td>{formatCurrency(s['יתרת חוב'])}</td>
+    </tr>
+  );
 
   return (
     <div>
@@ -63,24 +83,18 @@ const SuppliersReport = ({ showToast }) => {
             <table className="data-table">
               <thead><tr><th>שם ספק</th><th>שם חברה</th><th>טלפון</th><th>מייל</th><th>יתרת חוב</th></tr></thead>
               <tbody>
-                {suppliersPag.map((s, i) => (
-                  <tr key={i}>
-                    <td><strong>{s['שם ספק']}</strong></td>
-                    <td className="suppliers-table__company">{s['שם חברה'] || '—'}</td>
-                    <td>{s['טלפון'] || '—'}</td>
-                    <td>{s['מייל'] || '—'}</td>
-                    <td >{formatCurrency(s['יתרת חוב'])}</td>
-                  </tr>
-                ))}
+                {suppliersPag.map((s, i) => <SupplierRow key={i} s={s} />)}
+                {suppliers.slice(PAGE_SIZE).map((s, i) => <SupplierRow key={`pdf-${i}`} s={s} hidden />)}
               </tbody>
             </table>
           </Card>
-
-          <Pagination
-            page={page}
-            totalPages={totalPages}
-            onChange={setPage}
-          />
+          <div className="no-print">
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              onChange={setPage}
+            />
+          </div>
         </div>
       )}
     </div>

@@ -1,9 +1,9 @@
 import Pagination from '../Common/Pagination';
 import React, { useState } from 'react';
-import { getSalesReport, downloadReport, getSales } from '../api';              // תוקן
+import { getSalesReport, downloadReport, getSales } from '../api';
 import { Button, ExportButtons, Card, Badge, EmptyState, Spinner, StatCard, FormField, Input } from '../Common/UI';
 import AppSelect from '../Common/AppSelect';
-import { formatCurrency, formatDate, downloadBlob, exportToPDF, useAsync } from '../utils'; // תוקן
+import { formatCurrency, formatDate, downloadBlob, exportToPDF, useAsync } from '../utils';
 
 const SalesReport = ({ showToast }) => {
   const [startDate, setStartDate] = useState('');
@@ -21,17 +21,18 @@ const SalesReport = ({ showToast }) => {
   const [excelLoading, setExcelLoading] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
 
+  // שמור את שם קובץ האקסל האחרון לשימוש ב-PDF
+  const [excelFilename, setExcelFilename] = useState('דוח מכירות');
+
   const fetchReport = async () => {
-    setLoading(true);
-    setData(null);
+    setLoading(true); setData(null);
     try {
       const params = {};
       if (saleId) params.sale_id = saleId;
       if (startDate) params.startDate = startDate;
       if (endDate) params.endDate = endDate;
-      const result = await getSalesReport(params);
-      setData(result);
-      setPage(1); // איפוס לדף 1 בכל הפקת דוח חדשה
+      setData(await getSalesReport(params));
+      setPage(1);
     } catch (e) { showToast(e.message, 'error'); }
     finally { setLoading(false); }
   };
@@ -43,14 +44,23 @@ const SalesReport = ({ showToast }) => {
       if (saleId) qs.set('sale_id', saleId);
       if (startDate) qs.set('startDate', startDate);
       if (endDate) qs.set('endDate', endDate);
-      downloadBlob(await downloadReport(`/reports/sales?${qs}`), 'דוח_מכירות.xlsx');
+      const { blob, response } = await downloadReport(`/reports/sales?${qs}`);
+      // קרא שם קובץ מהשרת
+      const disposition = response.headers.get('Content-Disposition');
+      let filename = 'דוח מכירות.xlsx';
+      if (disposition) {
+        const match = disposition.match(/filename="?([^"]+)"?/);
+        if (match) filename = decodeURIComponent(match[1]);
+      }
+      setExcelFilename(filename.replace(/\.xlsx$/i, ''));
+      downloadBlob(blob, filename, response);
     } catch (e) { showToast('שגיאה בייצוא Excel', 'error'); }
     finally { setExcelLoading(false); }
   };
 
   const handlePDF = async () => {
     setPdfLoading(true);
-    try { await exportToPDF('sales-report', 'דוח_מכירות'); }
+    try { await exportToPDF('sales-report', excelFilename); }
     catch (e) { showToast('שגיאה בייצוא PDF', 'error'); }
     finally { setPdfLoading(false); }
   };
@@ -75,15 +85,13 @@ const SalesReport = ({ showToast }) => {
         </div>
       </div>
 
-      {/* ─── פילטרים ─── */}
-      <Card className="report-filters">
+      {/* פילטרים — לא ב-PDF */}
+      <Card className="report-filters no-print">
         <div className="report-filters__row">
-          {/* בחירת מכירה ספציפית — דרופדאון במקום שדה ID */}
-          {/* allSales נטען ברקע; כשמבחרים מכירה — saleId מתעדכן */}
           <FormField label="מכירה ספציפית">
             <AppSelect
               options={[
-                { value: '', label: '                     כל המכירות' },
+                { value: '', label: 'כל המכירות' },
                 ...(allSales || []).map(s => ({
                   value: s.id,
                   label: `${s.name} — ${formatDate(s.date)} ${s.status === 'closed' ? '🔒' : '🔓'}`
@@ -92,7 +100,10 @@ const SalesReport = ({ showToast }) => {
               value={saleId}
               onChange={id => {
                 setSaleId(id);
-                if (id) { setStartDate(''); setEndDate(''); }
+                if (id) {
+                  setStartDate('');
+                  setEndDate('');
+                }
               }}
               placeholder="כל המכירות"
               noOptionsMessage="אין מכירות"
@@ -120,11 +131,6 @@ const SalesReport = ({ showToast }) => {
         <div id="sales-report">
           <div className="stats-grid--2">
             <StatCard label="מספר מכירות" value={data['כמות'] ?? salesList.length} />
-            {/* מציג את טווח התאריכים שנבחר.
-                אם שני תאריכים: "X — Y"
-                אם רק התחלה:   "מ-X"
-                אם רק סיום:    "עד Y"
-                אם כלום:       "כל הזמנים" */}
             <StatCard label="טווח תאריכים" value={
               startDate && endDate ? `${formatDate(startDate)} — ${formatDate(endDate)}`
                 : startDate ? `מ- ${formatDate(startDate)}`
@@ -144,23 +150,31 @@ const SalesReport = ({ showToast }) => {
                     <td><Badge variant={s['סטטוס'] === 'פתוחה לשינויים' ? 'success' : 'default'}>{s['סטטוס']}</Badge></td>
                   </tr>
                 ))}
+                {/* שורות נסתרות לPDF — עמודים 2+ */}
+                {salesList.slice(PAGE_SIZE).map((s, i) => (
+                  <tr key={`pdf-${i}`} className="pdf-show-all" style={{ display: 'none' }}>
+                    <td><strong>{s['שם מכירה']}</strong></td>
+                    <td>{s['תאריך']}</td>
+                    <td><Badge variant={s['סטטוס'] === 'פתוחה לשינויים' ? 'success' : 'default'}>{s['סטטוס']}</Badge></td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </Card>
-
-          {/* pagination לרשימת מכירות — מוצג רק כשאין מכירה ספציפית נבחרת */}
-          {!saleId && <Pagination
-            page={page}
-            totalPages={totalPages}
-            onChange={setPage}
-          />}
+          <div className="no-print">
+            {!saleId && <Pagination
+              page={page}
+              totalPages={totalPages}
+              onChange={setPage}
+            />}
+          </div>
         </div>
       )}
 
       {/* ─── פרטי מכירה ─── */}
       {isSaleDetail && (
         <div id="sales-report">
-          <div className="report-back-btn">
+          <div className="report-back-btn no-print">
             <Button size="sm" variant="ghost" onClick={() => { setData(null); setSaleId(''); }}>← חזרה לרשימה</Button>
           </div>
           <Card className="sale-info-card">
@@ -179,14 +193,26 @@ const SalesReport = ({ showToast }) => {
           </div>
           <Card>
             <div className="table-wrap">
+              {/* מכירה ספציפית — כל המוצרים, ללא pagination */}
               <table className="data-table">
                 <thead>
-                  <tr><th>מוצר</th><th>נמכר</th><th>חזר</th><th>עלות</th><th>מכירה</th><th>סה"כ עלות</th><th>סה"כ מכירה</th><th>רווח</th></tr>
+                  <tr>
+                    <th>מוצר</th>
+                    <th>יצא למכירה</th>
+                    <th>נמכר</th>
+                    <th>חזר</th>
+                    <th>עלות</th>
+                    <th>מכירה</th>
+                    <th>סה"כ עלות</th>
+                    <th>סה"כ מכירה</th>
+                    <th>רווח</th>
+                  </tr>
                 </thead>
                 <tbody>
                   {products.map((p, i) => (
                     <tr key={i}>
                       <td><strong>{p['מוצר']}</strong></td>
+                      <td>{p['יצא למכירה']}</td>
                       <td>{p['נמכר']}</td>
                       <td>{p['חזר']}</td>
                       <td>{formatCurrency(p['מחיר עלות'])}</td>

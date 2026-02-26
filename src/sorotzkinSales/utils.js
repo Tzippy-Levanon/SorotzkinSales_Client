@@ -32,22 +32,50 @@ export const formatDate = (dateStr) => {
   return new Date(dateStr).toLocaleDateString('he-IL');
 };
 
-// מוריד Blob (קובץ Excel/PDF) למחשב המשתמש
-export const downloadBlob = (blob, filename) => {
+// מוריד Blob — קורא את שם הקובץ מה-header של השרת אם קיים
+export const downloadBlob = (blob, filename, response) => {
+  // נסה לקרוא שם מ-Content-Disposition header
+  let finalName = filename;
+  if (response?.headers) {
+    const disposition = response.headers.get('Content-Disposition');
+    if (disposition) {
+      const match = disposition.match(/filename="?([^"]+)"?/);
+      if (match) finalName = decodeURIComponent(match[1]);
+    }
+  }
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = filename; a.click();
+  a.href = url; 
+  a.download = finalName; 
+  a.click();
   URL.revokeObjectURL(url);
 };
 
-// מייצא אלמנט HTML כ-PDF (מחייב: npm install html2pdf.js)
-export const exportToPDF = async (elementId, filename) => {
+// מייצא אלמנט HTML כ-PDF — שם הקובץ תואם לאקסל (מחליף .xlsx ב-.pdf)
+export const exportToPDF = async (elementId, excelFilename) => {
   const { default: html2pdf } = await import('html2pdf.js');
   const el = document.getElementById(elementId);
   if (!el) return;
-  await html2pdf().set({
-    margin: 10, filename: `${filename}.pdf`,
-    html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
-  }).from(el).save();
+
+  // המר שם אקסל ל-PDF: "דוח מלאי.xlsx" → "דוח מלאי.pdf"
+  const pdfName = excelFilename
+    ? excelFilename.replace(/\.xlsx$/i, '')
+    : 'דוח';
+
+  // הסתר אלמנטים שלא אמורים להופיע ב-PDF
+  const hidden = el.querySelectorAll('.no-print');
+  hidden.forEach(n => n.style.setProperty('display', 'none', 'important'));
+  const allRows = el.querySelectorAll('.pdf-show-all');
+  allRows.forEach(n => n.style.setProperty('display', '', 'important'));
+
+  try {
+    await html2pdf().set({
+      margin: 10, filename: `${pdfName}.pdf`,
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
+    }).from(el).save();
+  } finally {
+    hidden.forEach(n => n.style.removeProperty('display'));
+    allRows.forEach(n => n.style.removeProperty('display'));
+  }
 };
