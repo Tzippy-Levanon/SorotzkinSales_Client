@@ -7,7 +7,7 @@ import { addProductsToSale, closeSale, getSaleDetail, removeSaleItem } from '../
 import ProductPicker from './ProductPicker';
 import CloseSaleForm from './CloseSaleForm';
 
-const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle }) => {
+const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle, onCollapse }) => {
   const [addModal, setAddModal] = useState(false);
   const [closeModal, setCloseModal] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState([]);
@@ -120,7 +120,10 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle }) 
     try {
       await closeSale(saleId, prods);
       showToast('המכירה נסגרה בהצלחה');
-      setCloseModal(false); refetch();
+      setCloseModal(false);
+      setSaleDetail(null);
+      onCollapse?.();
+      refetch();
     } catch (e) { showToast(e.message, 'error'); }
     finally { setLoading(false); }
   };

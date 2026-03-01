@@ -61,6 +61,7 @@ const SalesPage = ({ showToast }) => {
               refetch={refetch}
               isExpanded={expandedSale === sale.id}
               onToggle={() => setExpandedSale(expandedSale === sale.id ? null : sale.id)}
+              onCollapse={() => setExpandedSale(null)}
             />
           ))}
         </div>

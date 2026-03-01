@@ -3,9 +3,9 @@ import { NavLink } from 'react-router-dom';
 
 const NAV_ITEMS = [
   { to: '/products', label: 'מלאי', icon: '◈' },
-  { to: '/sales', label: 'מכירות', icon: '◆' },
-  { to: '/suppliers', label: 'ספקים', icon: '◇' },
-  { to: '/reports', label: 'דוחות', icon: '◉' },
+  { to: '/sales', label: 'מכירות', icon: '◈' },
+  { to: '/suppliers', label: 'ספקים', icon: '◈' },
+  { to: '/reports', label: 'דוחות', icon: '◈' },
 ];
 
 const Navbar = ({ onLogout }) => (

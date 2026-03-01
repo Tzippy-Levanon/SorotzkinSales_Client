@@ -220,7 +220,7 @@ const SuppliersPage = ({ showToast }) => {
           </div>
           <div className="form-actions">
             <Button variant="ghost" onClick={closeModal} type="button">ביטול</Button>
-            <Button type="submit" disabled={submitting}>{submitting ? 'מעלה...' : 'העלה קובץ'}</Button>
+            <Button type="submit" disabled={submitting}>{submitting ? 'מעלה...' : 'אישור'}</Button>
           </div>
         </form>
       </Modal>

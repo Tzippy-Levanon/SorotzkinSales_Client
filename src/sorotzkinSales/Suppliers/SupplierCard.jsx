@@ -24,8 +24,8 @@ const SupplierCard = ({ supplier, onEdit }) => {
   // טוען את התשלומים מהשרת רק בפתיחה הראשונה (cache: אם payments כבר קיים — לא טוען שוב)
   const openPayments = async () => {
     setPaymentsOpen(true);
-    setPage(1); // תמיד מתחיל מדף 1 בפתיחה
-    if (payments !== null) return; // כבר נטענו — לא צריך שוב
+    setPage(1);
+    setPayments(null); // תמיד טען מחדש — ייתכן שנוספה חשבונית
     setLoadingPay(true);
     try {
       const data = await getSupplierPayments(supplier.id);
