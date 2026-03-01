@@ -226,7 +226,14 @@
 }
 
 .data-table tbody tr:hover {
-  background: var(--surface-hover);
+  background: #dde1ef;
+}
+
+/* כפתורי ghost בתוך שורת hover — רקע עדין לנראות טובה */
+.data-table tbody tr:hover .btn--ghost {
+  background: rgba(255, 255, 255, 0.55);
+  border-color: var(--border);
+  color: var(--text);
 }
 
 .table-wrap {
@@ -520,26 +527,18 @@
   margin-bottom: 24px;
 }
 
-.login-logo__site-name {
-  font-family: var(--font-display);
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #0f1c40;
-  letter-spacing: 0.04em;
-}
-
 .login-logo__text {
   font-family: var(--font-display);
   font-size: 1.1rem;
   font-weight: 700;
-  color: #0f1c40;
+  color: var(--primary);
 }
 
 .login-title {
   font-family: var(--font-display);
   font-size: 1.8rem;
   font-weight: 800;
-  color: #0f1c40;
+  color: var(--primary);
   text-align: center;
   margin-bottom: 6px;
 }

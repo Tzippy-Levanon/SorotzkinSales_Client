@@ -58,6 +58,7 @@ export const getMe = () => api.get('/auth/me');
 
 /* ─── Products ───────────────────────────────────────────────────────────── */
 export const getProducts = () => api.get('/products');
+export const getProductArrivals = (id) => api.get(`/products/${id}/arrivals`);
 export const addProduct = (data) => api.post('/products', data);
 export const updateProduct = (id, data) => api.patch(`/products/${id}`, data);
 
@@ -67,6 +68,7 @@ export const addSale = (data) => api.post('/sales', data);
 export const addProductsToSale = (saleId, products) => api.post(`/sales/addProductsToSale/${saleId}/products`, { products });
 export const closeSale = (saleId, products) => api.patch(`/sales/${saleId}/products`, { products });
 export const removeSaleItem = (saleId, productId) => api.delete(`/sales/${saleId}/products/${productId}`);
+export const deleteSale = (saleId) => api.delete(`/sales/${saleId}`);
 export const getSaleDetail = (saleId) => api.get(`/reports/sales?sale_id=${saleId}`);
 
 /* ─── Suppliers ──────────────────────────────────────────────────────────── */

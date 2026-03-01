@@ -3,7 +3,7 @@ import Swal from 'sweetalert2';
 import React, { useState, useMemo } from 'react';
 import { Button, Badge, Modal, Spinner } from '../Common/UI';
 import { formatDate, formatCurrency } from '../utils';
-import { addProductsToSale, closeSale, getSaleDetail, removeSaleItem } from '../api';
+import { addProductsToSale, closeSale, getSaleDetail, removeSaleItem, deleteSale } from '../api';
 import ProductPicker from './ProductPicker';
 import CloseSaleForm from './CloseSaleForm';
 
@@ -18,25 +18,19 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle, on
 
   const isOpen = sale.status === 'open';
 
-  // Pagination לרשימת המוצרים בפנים — 10 מוצרים לדף
   const [prodPage, setProdPage] = useState(1);
   const PROD_PAGE_SIZE = 10;
   const activeProducts = useMemo(() => (products || []).filter(p => p.is_active), [products]);
 
-  // טעינת פרטי המכירה בפתיחת הפאנל
-  // איפוס לדף 1 בכל פתיחה מחדש של הכרטיס
   React.useEffect(() => { if (!isExpanded) setProdPage(1); }, [isExpanded]);
 
   const handleToggle = async () => {
     onToggle();
-    // טוען פרטים רק בפתיחה, ורק אם עוד לא נטענו
     if (!isExpanded && !saleDetail) {
       try {
         const data = await getSaleDetail(sale.id);
         setSaleDetail(data);
-      } catch (_) {
-        // אם השרת לא מחזיר פרטים — לא קריטי
-      }
+      } catch (_) { }
     }
   };
 
@@ -51,7 +45,7 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle, on
           const match = (products || []).find(prod => prod.name === p['מוצר']);
           return {
             product_id: match?.id ?? null,
-            opening_stock: (p['נמכר'] || 0) + (p['חזר'] || 0),
+            opening_stock: (p['יצא למכירה'] || 0),
             products: { name: p['מוצר'] }
           };
         })
@@ -60,6 +54,28 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle, on
       setSaleItems(items);
       setCloseModal(true);
     } catch (e) { showToast(e.message || 'שגיאה בטעינת פריטי המכירה', 'error'); }
+    finally { setLoading(false); }
+  };
+
+  const handleDeleteSale = async () => {
+    const result = await Swal.fire({
+      title: 'מחיקת מכירה',
+      text: `האם למחוק את "${sale.name}"? פעולה זו אינה הפיכה.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'מחק',
+      cancelButtonText: 'ביטול',
+      confirmButtonColor: '#c0392b',
+      cancelButtonColor: '#6b7280',
+      reverseButtons: true,
+    });
+    if (!result.isConfirmed) return;
+    setLoading(true);
+    try {
+      await deleteSale(sale.id);
+      showToast('המכירה נמחקה בהצלחה');
+      refetch();
+    } catch (e) { showToast(e.message, 'error'); }
     finally { setLoading(false); }
   };
 
@@ -78,7 +94,6 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle, on
     if (!result.isConfirmed) return;
     setLoading(true);
     try {
-      // מוצא את product_id לפי שם
       const prod = (products || []).find(p => p.name === productName);
       if (!prod) return showToast('לא נמצא המוצר', 'error');
       await removeSaleItem(sale.id, prod.id);
@@ -96,7 +111,6 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle, on
       await addProductsToSale(sale.id, selectedProducts);
       showToast('המוצרים נוספו בהצלחה');
       setAddModal(false); setSelectedProducts([]);
-      // רענן פרטים
       const data = await getSaleDetail(sale.id);
       setSaleDetail(data);
     } catch (e) {
@@ -135,7 +149,6 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle, on
 
   return (
     <div className="card sale-card">
-      {/* ─── שורת כותרת ─── */}
       <div className="sale-card__header" onClick={handleToggle}>
         <div className="sale-card__info">
           <div className={`sale-card__icon sale-card__icon--${isOpen ? 'open' : 'closed'}`}>
@@ -162,15 +175,14 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle, on
               <Button size="sm" variant="success" onClick={fetchAndOpenClose} disabled={loading}>
                 {loading ? 'טוען...' : '🔒 סגור מכירה'}
               </Button>
+              <Button size="sm" variant="danger" onClick={handleDeleteSale} disabled={loading}>
+                🗑 מחק מכירה
+              </Button>
             </div>
           )}
 
-          {/* ─── תוכן: spinner / ריק / טבלה ─── */}
           {detailLoading ? (
-            // מציג spinner בזמן הטעינה — לא הודעת שגיאה
-            <div className="sale-detail__loading">
-              <Spinner size="sm" />
-            </div>
+            <div className="sale-detail__loading"><Spinner size="sm" /></div>
           ) : saleProducts.length > 0 ? (
             <div className="sale-detail__products">
               <div className="sale-detail__products-title">מוצרים במכירה</div>
@@ -190,7 +202,7 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle, on
                   {prodPaginated.map((p, i) => (
                     <tr key={i}>
                       <td><strong>{p['מוצר']}</strong></td>
-                      <td>{(p['נמכר'] || 0) + (p['חזר'] || 0)}</td>
+                      <td>{p['יצא למכירה'] ?? (p['נמכר'] || 0) + (p['חזר'] || 0)}</td>
                       {!isOpen && <td>{p['נמכר'] ?? '—'}</td>}
                       {!isOpen && <td>{p['חזר'] ?? '—'}</td>}
                       {!isOpen && <td>{p['סה"כ מחיר עלות'] != null ? formatCurrency(p['סה"כ מחיר עלות']) : '—'}</td>}
@@ -221,9 +233,8 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle, on
               )}
             </div>
           ) : saleDetail && !saleDetail.error ? (
-            // טעינה הסתיימה ואין מוצרים — זה אמיתי
             <div className="sale-detail__empty">אין מוצרים משויכים למכירה זו עדיין</div>
-          ) : 'טוען פריטים...' /* לא מציגים כלום אם טרם טענו */}
+          ) : 'טוען פריטים...'}
         </div>
       )}
 
