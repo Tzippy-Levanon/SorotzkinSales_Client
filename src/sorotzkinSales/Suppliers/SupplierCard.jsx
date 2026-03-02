@@ -18,7 +18,7 @@ const SupplierCard = ({ supplier, onEdit }) => {
 
   // Pagination בתוך המודל — 5 תשלומים לדף
   const [page, setPage] = useState(1);
-  const PAGE_SIZE = 5;
+  const PAGE_SIZE = 7;
 
   // ─── פתיחת מודל תשלומים ───────────────────────────────────────────────────
   // טוען את התשלומים מהשרת רק בפתיחה הראשונה (cache: אם payments כבר קיים — לא טוען שוב)
