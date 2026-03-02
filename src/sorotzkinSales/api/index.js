@@ -1,7 +1,7 @@
 // ─── URL ─────────────────────────────────────────────────────────────────
 // פיתוח:  http://localhost:5000/api  (ברירת מחדל)
-// ייצור:  הגדר VITE_API_URL=https://your-domain.com/api  בקובץ .env.production
-const BASE_URL = import.meta.env.REACT_API_URL || 'http://localhost:5000/api';
+// ייצור:  הגדר REACT_APP_API_URL=https://your-domain.com/api  ב-Netlify
+const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 // ─── Network error handling ───────────────────────────────────────────────
 const TIMEOUT_MS = 12000;
