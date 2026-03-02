@@ -27,6 +27,17 @@ const handleNetworkError = (e) => {
   throw new Error('השרת אינו זמין כרגע — נסה שוב מאוחר יותר');
 };
 
+// Keep Render alive - ping every 10 minutes
+const keepAlive = () => {
+  setInterval(() => {
+    fetch(`${process.env.REACT_APP_API_URL}/health`, {
+      credentials: 'include'
+    }).catch(() => { }); // ignore errors
+  }, 10 * 60 * 1000); // 10 דקות
+};
+
+keepAlive();
+
 const api = {
   get: (path) => fetchWithTimeout(`${BASE_URL}${path}`)
     .then(handleResponse).catch(handleNetworkError),
