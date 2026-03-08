@@ -6,7 +6,7 @@ import { formatCurrency } from '../utils';
 // products: רשימת מוצרים פעילים. selected: [{product_id, quantity}]. onChange: callback
 const ProductPicker = ({ products, selected, onChange, supplierMap = {} }) => {
   const [search, setSearch] = useState('');
-  const [sortBy, setSortBy] = useState('name'); // 'name' | 'supplier'
+  const [sortBy, setSortBy] = useState('name');
 
   const filtered = useMemo(() => {
     const list = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
@@ -36,7 +36,16 @@ const ProductPicker = ({ products, selected, onChange, supplierMap = {} }) => {
   return (
     <div>
       <div className="product-picker__toolbar">
-        <input className="form-input" value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 חיפוש מוצר..." />
+        <div className="products-filters__search" style={{ flex: 1 }}>
+          <span className="products-filters__search-icon">🔍</span>
+          <input
+            className="form-input"
+            placeholder="חיפוש מוצר..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            style={{ paddingRight: '36px' }}
+          />
+        </div>
         <div className="products-filters__sort">
           <button type="button" className={`sort-btn${sortBy === 'name' ? ' sort-btn--active' : ''}`} onClick={() => setSortBy('name')}>א-ב</button>
           <button type="button" className={`sort-btn${sortBy === 'supplier' ? ' sort-btn--active' : ''}`} onClick={() => setSortBy('supplier')}>לפי ספק</button>
