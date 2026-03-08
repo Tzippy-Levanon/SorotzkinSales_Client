@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import { Input } from '../Common/UI';
 import { formatCurrency } from '../utils';
 
 // ─── ProductPicker ────────────────────────────────────────────────────────
@@ -37,7 +36,7 @@ const ProductPicker = ({ products, selected, onChange, supplierMap = {} }) => {
   return (
     <div>
       <div className="product-picker__toolbar">
-        <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="חיפוש מוצר..." />
+        <input className="form-input" value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 חיפוש מוצר..." />
         <div className="products-filters__sort">
           <button type="button" className={`sort-btn${sortBy === 'name' ? ' sort-btn--active' : ''}`} onClick={() => setSortBy('name')}>א-ב</button>
           <button type="button" className={`sort-btn${sortBy === 'supplier' ? ' sort-btn--active' : ''}`} onClick={() => setSortBy('supplier')}>לפי ספק</button>

@@ -115,7 +115,7 @@ const ProductsPage = ({ showToast }) => {
           <span className="products-filters__search-icon">🔍</span>
           <input
             className="form-input"
-            placeholder="חיפוש לפי שם מוצר..."
+            placeholder="חיפוש מוצר..."
             value={searchText}
             onChange={e => setSearchText(e.target.value)}
             style={{ paddingRight: '36px' }}

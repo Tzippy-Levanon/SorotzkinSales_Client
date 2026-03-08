@@ -7,7 +7,7 @@ import { addProductsToSale, closeSale, getSaleDetail, removeSaleItem, deleteSale
 import ProductPicker from './ProductPicker';
 import CloseSaleForm from './CloseSaleForm';
 
-const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle, onCollapse }) => {
+const SaleCard = ({ sale, products, supplierMap = {}, showToast, refetch, isExpanded, onToggle, onCollapse }) => {
   const [addModal, setAddModal] = useState(false);
   const [closeModal, setCloseModal] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState([]);
@@ -21,15 +21,6 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle, on
   const PROD_PAGE_SIZE = 10;
 
   const activeProducts = useMemo(() => (products || []).filter(p => p.is_active), [products]);
-
-  // supplierMap נבנה מהמוצרים — מועבר ל-ProductPicker ו-CloseSaleForm למיון לפי ספק
-  const supplierMap = useMemo(() => {
-    const map = {};
-    (products || []).forEach(p => {
-      if (p.supplier_id && p.supplier_name) map[p.supplier_id] = p.supplier_name;
-    });
-    return map;
-  }, [products]);
 
   React.useEffect(() => { if (!isExpanded) setProdPage(1); }, [isExpanded]);
 
@@ -103,7 +94,7 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle, on
 
     if (!result.isConfirmed) return;
     setLoading(true);
-
+    
     try {
       const prod = (products || []).find(p => p.name === productName);
       if (!prod) return showToast('לא נמצא המוצר', 'error');
@@ -235,7 +226,7 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle, on
                 totalPages={totalProdPages}
                 onChange={setProdPage}
               />
-              
+
               {/* סיכום כספי — רק למכירה סגורה */}
               {!isOpen && summary && (
                 <div className="sale-detail__summary">

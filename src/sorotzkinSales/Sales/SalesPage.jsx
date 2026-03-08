@@ -1,7 +1,7 @@
 import Pagination from '../Common/Pagination';
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useAsync } from '../utils';                                    // תוקן
-import { getSales, addSale } from '../api';                              // תוקן
+import { getSales, addSale, getSuppliers } from '../api';                              // תוקן
 import { getProducts } from '../api';                              // תוקן
 import { Button, Modal, FormField, Input, Card, EmptyState, Spinner } from '../Common/UI';
 import SaleCard from './SaleCard';
@@ -15,6 +15,11 @@ const SalesPage = ({ showToast }) => {
   const totalPages = Math.max(1, Math.ceil((sales?.length || 0) / PAGE_SIZE));
   const paginated = (sales || []).slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const { data: products } = useAsync(getProducts);
+  const { data: suppliers } = useAsync(getSuppliers);
+  const supplierMap = useMemo(
+    () => Object.fromEntries((suppliers || []).map(s => [s.id, s.name])),
+    [suppliers]
+  );
   const [newSaleModal, setNewSaleModal] = useState(false);
   const [form, setForm] = useState({ name: '', date: '' });
   const [submitting, setSubmitting] = useState(false);
@@ -56,6 +61,7 @@ const SalesPage = ({ showToast }) => {
               key={sale.id}
               sale={sale}
               products={products}
+              supplierMap={supplierMap}
               showToast={showToast}
               refetch={refetch}
               isExpanded={expandedSale === sale.id}

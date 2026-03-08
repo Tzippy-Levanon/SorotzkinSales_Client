@@ -221,7 +221,7 @@
 }
 
 .product-picker__item--selected {
-   background: var(--accent-subtle);
+   background: #e8f0fe;
 }
 
 .product-picker__checkbox {

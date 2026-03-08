@@ -47,7 +47,7 @@ const CloseSaleForm = ({ saleId, saleItems, onSubmit, onClose, loading, products
     if (warnings.length > 0) {
       const result = await Swal.fire({
         title: 'שים לב — חוסר מלאי',
-        html: `<p>הפריטים הבאים חורגים מהמלאי הקיים. המלאי יעודכן ל-0 עבורם:</p><ul style="text-align:right;margin-top:8px">${warnings.join('')}</ul>`,
+        html: `<p>הפריטים הבאים חורגים מהמלאי הקיים. המלאי יעודכן ל-0 עבורם:</p><ul style="text-align:right; margin-top:8px">${warnings.join('')}</ul>`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'המשך בכל זאת',

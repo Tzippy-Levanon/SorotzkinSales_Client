@@ -448,9 +448,10 @@
 }
 
 .sort-btn--active {
-  background: var(--accent);
-  color: var(--on-accent);
+  background: transparent;
+  color: var(--accent);
   border-color: var(--accent);
+  border-width: 2px;
 }
 
 /* ─── Product picker toolbar ────────────────────────────────────────────── */
