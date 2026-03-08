@@ -559,86 +559,6 @@
    color: var(--danger);
 }
 
-/* ══════════════════════════════════════════════════════════════════════════
-   RESPONSIVE — Desktop screens (1024px → 1920px+)
-══════════════════════════════════════════════════════════════════════════ */
-
-/* Wide monitors — larger supplier grid */
-@media (min-width: 1440px) {
-   .suppliers-grid {
-      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-   }
-
-   .stats-grid--3 {
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-   }
-
-   .stats-grid--2 {
-      gap: 16px;
-   }
-}
-
-/* Small laptop (1024px–1279px) — tighter grids */
-@media (max-width: 1279px) {
-   .suppliers-grid {
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-   }
-
-   .stats-grid--3 {
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-   }
-
-   .products-filters__select {
-      width: 150px;
-   }
-
-   .report-tab {
-      padding: 9px 16px;
-      font-size: 0.85rem;
-   }
-
-   .arrival-item-row {
-      grid-template-columns: 1.5fr 1fr 1fr auto;
-   }
-}
-
-@media (max-width: 1100px) {
-   .suppliers-grid {
-      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-   }
-
-   /* stats-grid--3 נשמר תמיד ב-3 עמודות */
-   .stats-grid--3 {
-      grid-template-columns: repeat(3, 1fr);
-   }
-
-   .stats-grid--2 {
-      grid-template-columns: 1fr 1fr;
-   }
-
-   .arrival-item-row {
-      grid-template-columns: 1fr 1fr;
-   }
-
-   .arrival-item-row>*:nth-child(3) {
-      grid-column: 1;
-   }
-
-   .arrival-item-row>*:nth-child(4) {
-      grid-column: 2;
-      justify-self: end;
-   }
-
-   .report-filters__row {
-      gap: 8px;
-   }
-
-   .sale-info-card__row {
-      gap: 20px;
-   }
-}
 
 /* ══════════════════════════════════════════════════════════════════════════
    INLINE STYLE REPLACEMENTS
@@ -944,4 +864,85 @@
    padding: 0 4px;
    font-size: 1rem;
    user-select: none;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE — Desktop screens (1024px → 1920px+)
+══════════════════════════════════════════════════════════════════════════ */
+
+/* Wide monitors — larger supplier grid */
+@media (min-width: 1440px) {
+   .suppliers-grid {
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+   }
+
+   .stats-grid--3 {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+   }
+
+   .stats-grid--2 {
+      gap: 16px;
+   }
+}
+
+/* Small laptop (1024px–1279px) — tighter grids */
+@media (max-width: 1279px) {
+   .suppliers-grid {
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+   }
+
+   .stats-grid--3 {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+   }
+
+   .products-filters__select {
+      width: 150px;
+   }
+
+   .report-tab {
+      padding: 9px 16px;
+      font-size: 0.85rem;
+   }
+
+   .arrival-item-row {
+      grid-template-columns: 1.5fr 1fr 1fr auto;
+   }
+}
+
+@media (max-width: 1100px) {
+   .suppliers-grid {
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+   }
+
+   /* stats-grid--3 נשמר תמיד ב-3 עמודות */
+   .stats-grid--3 {
+      grid-template-columns: repeat(3, 1fr);
+   }
+
+   .stats-grid--2 {
+      grid-template-columns: 1fr 1fr;
+   }
+
+   .arrival-item-row {
+      grid-template-columns: 1fr 1fr;
+   }
+
+   .arrival-item-row>*:nth-child(3) {
+      grid-column: 1;
+   }
+
+   .arrival-item-row>*:nth-child(4) {
+      grid-column: 2;
+      justify-self: end;
+   }
+
+   .report-filters__row {
+      gap: 8px;
+   }
+
+   .sale-info-card__row {
+      gap: 20px;
+   }
 }

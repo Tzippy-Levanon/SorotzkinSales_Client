@@ -265,90 +265,6 @@
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   RESPONSIVE — Desktop screens only (1024px → 1920px+)
-══════════════════════════════════════════════════════════════════════════ */
-
-/* Full HD and above (1920px+) */
-@media (min-width: 1920px) {
-  .page-content {
-    max-width: 1600px;
-    padding: 52px 64px;
-  }
-
-  .page-title {
-    font-size: 2.4rem;
-  }
-}
-
-/* Wide laptop / external monitor (1440px–1919px) */
-@media (min-width: 1440px) and (max-width: 1919px) {
-  .page-content {
-    padding: 44px 48px;
-  }
-}
-
-/* Standard laptop (1280px–1439px) — default styles apply, no changes needed */
-
-/* Small laptop / 13" (1024px–1279px) */
-@media (max-width: 1279px) {
-  .page-content {
-    padding: 32px 24px;
-  }
-
-  .navbar {
-    padding: 0 20px;
-  }
-
-  .navbar__link {
-    padding: 8px 13px;
-    font-size: 0.83rem;
-  }
-
-  .navbar__logo-text {
-    font-size: 1.05rem;
-  }
-
-  .page-title {
-    font-size: 1.75rem;
-  }
-
-  .data-table th,
-  .data-table td {
-    padding: 10px 12px;
-  }
-}
-
-@media (max-width: 1100px) {
-  .page-content {
-    padding: 28px 16px;
-  }
-
-  .navbar {
-    padding: 0 16px;
-  }
-
-  .navbar__link {
-    padding: 7px 10px;
-    font-size: 0.8rem;
-  }
-
-  .navbar__logo-text {
-    font-size: 0.95rem;
-    letter-spacing: 0.03em;
-  }
-
-  .page-title {
-    font-size: 1.6rem;
-  }
-
-  .data-table th,
-  .data-table td {
-    padding: 9px 10px;
-    font-size: 0.82rem;
-  }
-}
-
-/* ══════════════════════════════════════════════════════════════════════════
    LOGIN PAGE
 ══════════════════════════════════════════════════════════════════════════ */
 .login-page {
@@ -635,5 +551,89 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE — Desktop screens only (1024px → 1920px+)
+══════════════════════════════════════════════════════════════════════════ */
+
+/* Full HD and above (1920px+) */
+@media (min-width: 1920px) {
+  .page-content {
+    max-width: 1600px;
+    padding: 52px 64px;
+  }
+
+  .page-title {
+    font-size: 2.4rem;
+  }
+}
+
+/* Wide laptop / external monitor (1440px–1919px) */
+@media (min-width: 1440px) and (max-width: 1919px) {
+  .page-content {
+    padding: 44px 48px;
+  }
+}
+
+/* Standard laptop (1280px–1439px) — default styles apply, no changes needed */
+
+/* Small laptop / 13" (1024px–1279px) */
+@media (max-width: 1279px) {
+  .page-content {
+    padding: 32px 24px;
+  }
+
+  .navbar {
+    padding: 0 20px;
+  }
+
+  .navbar__link {
+    padding: 8px 13px;
+    font-size: 0.83rem;
+  }
+
+  .navbar__logo-text {
+    font-size: 1.05rem;
+  }
+
+  .page-title {
+    font-size: 1.75rem;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 10px 12px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .page-content {
+    padding: 28px 16px;
+  }
+
+  .navbar {
+    padding: 0 16px;
+  }
+
+  .navbar__link {
+    padding: 7px 10px;
+    font-size: 0.8rem;
+  }
+
+  .navbar__logo-text {
+    font-size: 0.95rem;
+    letter-spacing: 0.03em;
+  }
+
+  .page-title {
+    font-size: 1.6rem;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 9px 10px;
+    font-size: 0.82rem;
   }
 }
