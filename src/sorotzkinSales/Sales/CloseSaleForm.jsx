@@ -42,6 +42,7 @@ const CloseSaleForm = ({ saleId, saleItems, onSubmit, onClose, loading, products
         cancelButtonColor: '#6b7280',
         reverseButtons: true,
       });
+      
       if (!result.isConfirmed) return;
     }
 

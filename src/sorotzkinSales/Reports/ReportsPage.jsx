@@ -13,6 +13,7 @@ const TABS = [
 // מארגן את שלושת הדוחות בטאבים. כל דוח הוא קומפוננטה עצמאית.
 const ReportsPage = ({ showToast }) => {
   const [activeTab, setActiveTab] = useState('inventory');
+  
   return (
     <div>
       <div className="page-header">

@@ -1,11 +1,7 @@
 import Pagination from '../Common/Pagination';
 import React, { useState, useMemo } from 'react';
 import { useAsync } from '../utils';
-import {
-  getSuppliers, addSupplier, updateSupplier,
-  recordStockArrival, recordPayment, uploadInvoice,
-  getSupplierPayments
-} from '../api';
+import { getSuppliers, addSupplier, updateSupplier, recordStockArrival, recordPayment, uploadInvoice, getSupplierPayments } from '../api';
 import { getProducts } from '../api';
 import { Button, Modal, FormField, Input, EmptyState, Spinner } from '../Common/UI';
 import AppSelect from '../Common/AppSelect';
@@ -51,9 +47,16 @@ const SuppliersPage = ({ showToast }) => {
   const handleSubmitSupplier = async (form) => {
     setSubmitting(true);
     try {
-      if (editSupplier) { await updateSupplier(editSupplier.id, form); showToast('הספק עודכן בהצלחה'); }
-      else { await addSupplier(form); showToast('הספק נוסף בהצלחה'); }
-      closeModal(); refetch();
+      if (editSupplier) {
+        await updateSupplier(editSupplier.id, form);
+        showToast('הספק עודכן בהצלחה');
+      }
+      else {
+        await addSupplier(form);
+        showToast('הספק נוסף בהצלחה');
+      }
+      closeModal();
+      refetch();
     } catch (e) {
       const msg = e.message || '';
       const code = e.code || e.details || '';

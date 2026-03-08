@@ -69,7 +69,12 @@ const InventoryReport = ({ showToast }) => {
           <p className="report-header__subtitle">כל המוצרים עם הכמות וערך המלאי</p>
         </div>
         <div className="report-header__right">
-          {data && <ExportButtons onExcel={handleExcel} onPDF={handlePDF} excelLoading={excelLoading} pdfLoading={pdfLoading} />}
+          {data && <ExportButtons
+            onExcel={handleExcel}
+            onPDF={handlePDF}
+            excelLoading={excelLoading}
+            pdfLoading={pdfLoading}
+          />}
           <Button onClick={fetchReport} disabled={loading}>{loading ? 'טוען...' : 'הפק דוח'}</Button>
         </div>
       </div>

@@ -17,7 +17,6 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle, on
   const [loading, setLoading] = useState(false);
 
   const isOpen = sale.status === 'open';
-
   const [prodPage, setProdPage] = useState(1);
   const PROD_PAGE_SIZE = 10;
   const activeProducts = useMemo(() => (products || []).filter(p => p.is_active), [products]);
@@ -91,8 +90,10 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle, on
       cancelButtonColor: '#6b7280',
       reverseButtons: true,
     });
+
     if (!result.isConfirmed) return;
     setLoading(true);
+
     try {
       const prod = (products || []).find(p => p.name === productName);
       if (!prod) return showToast('לא נמצא המוצר', 'error');
@@ -107,6 +108,7 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle, on
   const handleAddProducts = async () => {
     if (!selectedProducts.length) return showToast('יש לבחור לפחות מוצר אחד', 'error');
     setLoading(true);
+
     try {
       await addProductsToSale(sale.id, selectedProducts);
       showToast('המוצרים נוספו בהצלחה');

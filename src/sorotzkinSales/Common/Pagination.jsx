@@ -38,9 +38,7 @@ const Pagination = ({ page, totalPages, onChange }) => {
                 )}
             </div>
 
-            <button className="pagination__btn" onClick={() => onChange(page + 1)} disabled={page === totalPages}>
-                הבא &#8250;
-            </button>
+            <button className="pagination__btn" onClick={() => onChange(page + 1)} disabled={page === totalPages}> הבא &#8250; </button>
 
         </div>
     );

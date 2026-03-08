@@ -15,8 +15,8 @@ const ProductForm = ({ initial, suppliers, onSubmit, onClose, loading }) => {
     total_in_stock: initial?.total_in_stock ?? '',
     is_active: initial?.is_active ?? true,
   });
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
   const [errors, setErrors] = useState({});
 
   const validate = () => {
