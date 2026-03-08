@@ -19,7 +19,7 @@ const SupplierForm = ({ initial, onSubmit, onClose, loading }) => {
     if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
       errs.email = 'כתובת מייל אינה תקינה';
     }
-    if (form.phone && !/^[0-9\-+\s()]{7,15}$/.test(form.phone)) {
+    if (form.phone && !/^[+]?[0-9]{7,15}$/.test(form.phone.replace(/[\s\-()]/g, ''))) {
       errs.phone = 'מספר טלפון אינו תקין';
     }
     return errs;
