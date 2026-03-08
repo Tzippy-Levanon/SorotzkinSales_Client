@@ -42,7 +42,7 @@ const CloseSaleForm = ({ saleId, saleItems, onSubmit, onClose, loading, products
         cancelButtonColor: '#6b7280',
         reverseButtons: true,
       });
-      
+
       if (!result.isConfirmed) return;
     }
 
@@ -64,7 +64,8 @@ const CloseSaleForm = ({ saleId, saleItems, onSubmit, onClose, loading, products
               <input type="number" className="close-sale__remaining-input"
                 min="0" max={item.opening_stock}
                 value={remaining[item.product_id] ?? 0}
-                onChange={e => setR(item.product_id, e.target.value)} />
+                onChange={e => setR(item.product_id, e.target.value)}
+                onWheel={e => e.target.blur()} />
               <span className="close-sale__sold">
                 נמכר: {item.opening_stock - (remaining[item.product_id] ?? 0)}
               </span>

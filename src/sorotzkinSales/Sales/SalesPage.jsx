@@ -29,7 +29,6 @@ const SalesPage = ({ showToast }) => {
       setNewSaleModal(false);
       setForm({ name: '', date: '' });
       refetch();
-      setExpandedSale(sale.id);
     } catch (e) { showToast(e.message, 'error'); }
     finally { setSubmitting(false); }
   };

@@ -56,7 +56,8 @@ const ProductPicker = ({ products, selected, onChange }) => {
                     <input type="number" className="product-picker__qty-input"
                       min="1" max={p.total_in_stock}
                       value={selected.find(x => x.product_id === p.id)?.quantity || 1}
-                      onChange={e => setQty(p.id, e.target.value, p.total_in_stock)} />
+                      onChange={e => setQty(p.id, e.target.value, p.total_in_stock)}
+                      onWheel={e => e.target.blur()} />
                   </div>
                 )}
               </div>
