@@ -1,14 +1,28 @@
 import Swal from 'sweetalert2';
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '../Common/UI';
 
 // ─── CloseSaleForm ────────────────────────────────────────────────────────
 // טופס סגירת מכירה — מזין כמות שנותרה לכל מוצר ומחשב כמה נמכר.
 // saleId: מזהה המכירה. saleItems: [{product_id, opening_stock, products:{name}}]
-const CloseSaleForm = ({ saleId, saleItems, onSubmit, onClose, loading, products }) => {
+const CloseSaleForm = ({ saleId, saleItems, onSubmit, onClose, loading, products, supplierMap = {} }) => {
   const [remaining, setRemaining] = useState(
     Object.fromEntries(saleItems.map(i => [i.product_id, i.opening_stock]))
   );
+  const [sortBy, setSortBy] = useState('name'); // 'name' | 'supplier'
+
+  const sortedItems = useMemo(() => {
+    if (sortBy === 'supplier') {
+      return [...saleItems].sort((a, b) => {
+        const prodA = (products || []).find(p => p.id === a.product_id);
+        const prodB = (products || []).find(p => p.id === b.product_id);
+        const sA = supplierMap[prodA?.supplier_id] || '';
+        const sB = supplierMap[prodB?.supplier_id] || '';
+        return sA.localeCompare(sB, 'he') || (a.products?.name || '').localeCompare(b.products?.name || '', 'he');
+      });
+    }
+    return saleItems;
+  }, [saleItems, sortBy, supplierMap, products]);
 
   const setR = (id, val) =>
     setRemaining(r => ({
@@ -51,9 +65,15 @@ const CloseSaleForm = ({ saleId, saleItems, onSubmit, onClose, loading, products
 
   return (
     <form onSubmit={handleSubmit}>
-      <p className="close-sale__hint">הכנס את כמות הפריטים שנותרו (לא נמכרו) בסיום המכירה:</p>
+      <div className="close-sale__header">
+        <p className="close-sale__hint">הכנס את כמות הפריטים שנותרו (לא נמכרו) בסיום המכירה:</p>
+        <div className="products-filters__sort">
+          <button type="button" className={`sort-btn${sortBy === 'name' ? ' sort-btn--active' : ''}`} onClick={() => setSortBy('name')}>א-ב</button>
+          <button type="button" className={`sort-btn${sortBy === 'supplier' ? ' sort-btn--active' : ''}`} onClick={() => setSortBy('supplier')}>לפי ספק</button>
+        </div>
+      </div>
       <div className="close-sale__list">
-        {saleItems.map(item => (
+        {sortedItems.map(item => (
           <div key={item.product_id} className="close-sale__item">
             <div>
               <div className="close-sale__item-name">{item.products?.name}</div>

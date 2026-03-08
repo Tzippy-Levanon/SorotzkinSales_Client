@@ -419,3 +419,57 @@
   height: 18px;
   flex-shrink: 0;
 }
+
+/* ─── Sort buttons ──────────────────────────────────────────────────────── */
+.products-filters__sort {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.sort-btn {
+  padding: 6px 13px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.sort-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.sort-btn--active {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
+}
+
+/* ─── Product picker toolbar ────────────────────────────────────────────── */
+.product-picker__toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.product-picker__toolbar .form-input {
+  flex: 1;
+}
+
+/* ─── Close sale header ─────────────────────────────────────────────────── */
+.close-sale__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  gap: 12px;
+}

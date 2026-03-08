@@ -1,5 +1,5 @@
 import Pagination from '../Common/Pagination';
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { getSalesReport, downloadReport, getSales } from '../api';
 import { Button, ExportButtons, Card, Badge, EmptyState, Spinner, StatCard, FormField, Input } from '../Common/UI';
 import AppSelect from '../Common/AppSelect';
@@ -11,6 +11,9 @@ const SalesReport = ({ showToast }) => {
   const [saleId, setSaleId] = useState('');
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 15;
+  const [prodPage, setProdPage] = useState(1);
+  const PROD_PAGE_SIZE = 15;
+  const [sortBy, setSortBy] = useState('name'); // 'name' | 'supplier'
 
   // ── טעינת רשימת מכירות לדרופדאון ──────────────────────────────────────
   // useAsync מפעיל את getSales בטעינה ואחסון ב-allSales.
@@ -20,8 +23,6 @@ const SalesReport = ({ showToast }) => {
   const [loading, setLoading] = useState(false);
   const [excelLoading, setExcelLoading] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
-
-  // שמור את שם קובץ האקסל האחרון לשימוש ב-PDF
   const [excelFilename, setExcelFilename] = useState('דוח מכירות');
 
   const fetchReport = async () => {
@@ -33,6 +34,7 @@ const SalesReport = ({ showToast }) => {
       if (endDate) params.endDate = endDate;
       setData(await getSalesReport(params));
       setPage(1);
+      setProdPage(1);
     } catch (e) { showToast(e.message, 'error'); }
     finally { setLoading(false); }
   };
@@ -45,7 +47,6 @@ const SalesReport = ({ showToast }) => {
       if (startDate) qs.set('startDate', startDate);
       if (endDate) qs.set('endDate', endDate);
       const { blob, response } = await downloadReport(`/reports/sales?${qs}`);
-      // קרא שם קובץ מהשרת
       const disposition = response.headers.get('Content-Disposition');
       let filename = 'דוח מכירות.xlsx';
       if (disposition) {
@@ -70,8 +71,21 @@ const SalesReport = ({ showToast }) => {
   const summary = data?.['סיכום_כספי'];
   const products = data?.['מוצרים'] || [];
   const salesList = data?.['מכירות'] || [];
+
+  const sortedProducts = useMemo(() => {
+    if (sortBy === 'supplier') {
+      return [...products].sort((a, b) =>
+        (a['ספק'] || '').localeCompare(b['ספק'] || '', 'he') ||
+        (a['מוצר'] || '').localeCompare(b['מוצר'] || '', 'he')
+      );
+    }
+    return products;
+  }, [products, sortBy]);
+
   const totalPages = Math.max(1, Math.ceil(salesList.length / PAGE_SIZE));
   const salesListPag = salesList.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const totalProdPages = Math.max(1, Math.ceil(sortedProducts.length / PROD_PAGE_SIZE));
+  const productsPag = sortedProducts.slice((prodPage - 1) * PROD_PAGE_SIZE, prodPage * PROD_PAGE_SIZE);
 
   return (
     <div>
@@ -90,7 +104,7 @@ const SalesReport = ({ showToast }) => {
         </div>
       </div>
 
-      {/* פילטרים — לא ב-PDF */}
+      {/* פילטרים */}
       <Card className="report-filters no-print">
         <div className="report-filters__row">
           <FormField label="מכירה ספציפית">
@@ -105,9 +119,9 @@ const SalesReport = ({ showToast }) => {
               value={saleId}
               onChange={id => {
                 setSaleId(id);
-                if (id) {
-                  setStartDate('');
-                  setEndDate('');
+                if (id) { 
+                  setStartDate(''); 
+                  setEndDate(''); 
                 }
               }}
               placeholder="כל המכירות"
@@ -122,7 +136,6 @@ const SalesReport = ({ showToast }) => {
           <FormField label="עד תאריך">
             <Input type="date" value={endDate} onChange={e => { setEndDate(e.target.value); setSaleId(''); }} className="report-filters__input--date" />
           </FormField>
-          {/* הכפתור עם margin-right: auto דוחף אותו לקצה השורה (שמאל ב-RTL = סוף) */}
           <Button style={{ marginRight: 'auto' }} onClick={fetchReport} disabled={loading}>
             {loading ? 'טוען...' : 'הפק דוח'}
           </Button>
@@ -196,6 +209,13 @@ const SalesReport = ({ showToast }) => {
               value={formatCurrency(summary?.['רווח'])}
               sub={summary?.['סה"כ מחיר מכירה'] > 0 ? `${((summary['רווח'] / summary['סה"כ מחיר מכירה']) * 100).toFixed(1)}% מהמחזור` : ''} />
           </div>
+
+          {/* כפתורי מיון — רק בתצוגה */}
+          <div className="products-filters__sort no-print" style={{ marginBottom: '12px' }}>
+            <button type="button" className={`sort-btn${sortBy === 'name' ? ' sort-btn--active' : ''}`} onClick={() => { setSortBy('name'); setProdPage(1); }}>א-ב</button>
+            <button type="button" className={`sort-btn${sortBy === 'supplier' ? ' sort-btn--active' : ''}`} onClick={() => { setSortBy('supplier'); setProdPage(1); }}>לפי ספק</button>
+          </div>
+
           <Card>
             <div className="table-wrap">
               {/* מכירה ספציפית — כל המוצרים, ללא pagination */}
@@ -214,8 +234,24 @@ const SalesReport = ({ showToast }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {products.map((p, i) => (
+                  {productsPag.map((p, i) => (
                     <tr key={i}>
+                      <td><strong>{p['מוצר']}</strong></td>
+                      <td>{p['יצא למכירה']}</td>
+                      <td>{p['נמכר']}</td>
+                      <td>{p['חזר']}</td>
+                      <td>{formatCurrency(p['מחיר עלות'])}</td>
+                      <td>{formatCurrency(p['מחיר מכירה'])}</td>
+                      <td>{formatCurrency(p['סה"כ מחיר עלות'])}</td>
+                      <td>{formatCurrency(p['סה"כ מחיר מכירה'])}</td>
+                      <td className={(p['רווח'] || 0) >= 0 ? 'profit--positive' : 'profit--negative'}>
+                        {formatCurrency(p['רווח'])}
+                      </td>
+                    </tr>
+                  ))}
+                  {/* שורות נסתרות ל-PDF */}
+                  {sortedProducts.slice(PROD_PAGE_SIZE).map((p, i) => (
+                    <tr key={`pdf-${i}`} className="pdf-show-all" style={{ display: 'none' }}>
                       <td><strong>{p['מוצר']}</strong></td>
                       <td>{p['יצא למכירה']}</td>
                       <td>{p['נמכר']}</td>
@@ -233,6 +269,13 @@ const SalesReport = ({ showToast }) => {
               </table>
             </div>
           </Card>
+          <div className="no-print">
+            <Pagination
+              page={prodPage}
+              totalPages={totalProdPages}
+              onChange={setProdPage}
+            />
+          </div>
         </div>
       )}
     </div>

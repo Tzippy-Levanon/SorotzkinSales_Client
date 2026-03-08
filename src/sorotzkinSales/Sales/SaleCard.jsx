@@ -19,7 +19,17 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle, on
   const isOpen = sale.status === 'open';
   const [prodPage, setProdPage] = useState(1);
   const PROD_PAGE_SIZE = 10;
+
   const activeProducts = useMemo(() => (products || []).filter(p => p.is_active), [products]);
+
+  // supplierMap נבנה מהמוצרים — מועבר ל-ProductPicker ו-CloseSaleForm למיון לפי ספק
+  const supplierMap = useMemo(() => {
+    const map = {};
+    (products || []).forEach(p => {
+      if (p.supplier_id && p.supplier_name) map[p.supplier_id] = p.supplier_name;
+    });
+    return map;
+  }, [products]);
 
   React.useEffect(() => { if (!isExpanded) setProdPage(1); }, [isExpanded]);
 
@@ -225,7 +235,7 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle, on
                 totalPages={totalProdPages}
                 onChange={setProdPage}
               />
-
+              
               {/* סיכום כספי — רק למכירה סגורה */}
               {!isOpen && summary && (
                 <div className="sale-detail__summary">
@@ -243,7 +253,12 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle, on
       {/* ─── מודל הוספת מוצרים ─── */}
       <Modal isOpen={addModal} onClose={() => { setAddModal(false); setSelectedProducts([]); }}
         title={`הוספת מוצרים — ${sale.name}`} width="620px">
-        <ProductPicker products={activeProducts} selected={selectedProducts} onChange={setSelectedProducts} />
+        <ProductPicker
+          products={activeProducts}
+          selected={selectedProducts}
+          onChange={setSelectedProducts}
+          supplierMap={supplierMap}
+        />
         <div className="form-actions sale-card__form-actions">
           <Button variant="ghost" onClick={() => { setAddModal(false); setSelectedProducts([]); }}>ביטול</Button>
           <Button onClick={handleAddProducts} disabled={loading || !selectedProducts.length}>
@@ -256,8 +271,15 @@ const SaleCard = ({ sale, products, showToast, refetch, isExpanded, onToggle, on
       <Modal isOpen={closeModal} onClose={() => setCloseModal(false)}
         title={`סגירת מכירה — ${sale.name}`} width="580px">
         {saleItems && (
-          <CloseSaleForm saleId={sale.id} saleItems={saleItems} products={products}
-            onSubmit={handleCloseSale} onClose={() => setCloseModal(false)} loading={loading} />
+          <CloseSaleForm
+            saleId={sale.id}
+            saleItems={saleItems}
+            products={products}
+            onSubmit={handleCloseSale}
+            onClose={() => setCloseModal(false)}
+            loading={loading}
+            supplierMap={supplierMap}
+          />
         )}
       </Modal>
     </div>

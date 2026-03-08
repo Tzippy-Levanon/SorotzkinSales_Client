@@ -1,16 +1,25 @@
 import React, { useState, useMemo } from 'react';
 import { Input } from '../Common/UI';
-import { formatCurrency } from '../utils';   // תוקן
+import { formatCurrency } from '../utils';
 
 // ─── ProductPicker ────────────────────────────────────────────────────────
 // בוחר מוצרים עם חיפוש, צ'קבוקס ובחירת כמות.
 // products: רשימת מוצרים פעילים. selected: [{product_id, quantity}]. onChange: callback
-const ProductPicker = ({ products, selected, onChange }) => {
+const ProductPicker = ({ products, selected, onChange, supplierMap = {} }) => {
   const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState('name'); // 'name' | 'supplier'
 
-  const filtered = useMemo(() =>
-    products.filter(p => p.name.toLowerCase().includes(search.toLowerCase())),
-    [products, search]);
+  const filtered = useMemo(() => {
+    const list = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+    if (sortBy === 'supplier') {
+      return [...list].sort((a, b) => {
+        const sA = supplierMap[a.supplier_id] || '';
+        const sB = supplierMap[b.supplier_id] || '';
+        return sA.localeCompare(sB, 'he') || a.name.localeCompare(b.name, 'he');
+      });
+    }
+    return list;
+  }, [products, search, sortBy, supplierMap]);
 
   const toggle = (prod) => onChange(prev =>
     prev.find(x => x.product_id === prod.id)
@@ -27,7 +36,13 @@ const ProductPicker = ({ products, selected, onChange }) => {
 
   return (
     <div>
-      <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="חיפוש מוצר..." />
+      <div className="product-picker__toolbar">
+        <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="חיפוש מוצר..." />
+        <div className="products-filters__sort">
+          <button type="button" className={`sort-btn${sortBy === 'name' ? ' sort-btn--active' : ''}`} onClick={() => setSortBy('name')}>א-ב</button>
+          <button type="button" className={`sort-btn${sortBy === 'supplier' ? ' sort-btn--active' : ''}`} onClick={() => setSortBy('supplier')}>לפי ספק</button>
+        </div>
+      </div>
       <div className="product-picker__list">
         {filtered.length === 0
           ? <div className="product-picker__empty">לא נמצאו מוצרים</div>

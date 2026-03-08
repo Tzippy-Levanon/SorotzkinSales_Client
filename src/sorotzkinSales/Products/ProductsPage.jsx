@@ -1,8 +1,8 @@
 import Pagination from '../Common/Pagination';
 import React, { useState, useMemo } from 'react';
-import { useAsync } from '../utils';                              // תוקן: היה ../../hooks/useAsync
-import { getProducts, addProduct, updateProduct } from '../api';     // תוקן: היה ../api/products
-import { getSuppliers } from '../api';                              // תוקן: היה ../api/suppliers
+import { useAsync } from '../utils';
+import { getProducts, addProduct, updateProduct } from '../api';
+import { getSuppliers } from '../api';
 import { Button, Modal, Card, EmptyState, Spinner, ConfirmDialog } from '../Common/UI';
 import { formatCurrency } from '../utils';
 import ProductForm from './ProductForm';
@@ -13,22 +13,24 @@ const ProductsPage = ({ showToast }) => {
   const { data: products, loading, refetch } = useAsync(getProducts);
   const { data: suppliers } = useAsync(getSuppliers);
 
-  // page — מספר הדף הנוכחי (מתחיל מ-1)
-  // PAGE_SIZE — כמה מוצרים בכל דף
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 15;
   const [searchText, setSearchText] = useState('');
   const [filterSupplier, setFilterSupplier] = useState('');
   const [filterOutOfStock, setFilterOutOfStock] = useState(false);
   const [filterInactive, setFilterInactive] = useState(false);
+  const [sortBy, setSortBy] = useState('name'); // 'name' | 'supplier'
   const [modalOpen, setModalOpen] = useState(false);
   const [editProduct, setEditProduct] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [deactivateConfirm, setDeactivateConfirm] = useState(null);
 
+  const supplierMap = useMemo(() =>
+    Object.fromEntries((suppliers || []).map(s => [s.id, s.name])), [suppliers]);
+
   const filtered = useMemo(() => {
-    if (!products) return [];
-    return products.filter(p => {
+    const list = Array.isArray(products) ? products : (products?.data || []);
+    return list.filter(p => {
       if (searchText && !p.name.toLowerCase().includes(searchText.toLowerCase())) return false;
       if (filterSupplier && String(p.supplier_id) !== filterSupplier) return false;
       if (filterOutOfStock && p.total_in_stock > 0) return false;
@@ -37,8 +39,18 @@ const ProductsPage = ({ showToast }) => {
     });
   }, [products, searchText, filterSupplier, filterOutOfStock, filterInactive]);
 
-  // כשמסנן משתנה — חזור לדף 1 כדי שלא יהיה דף ריק
-  React.useEffect(() => { setPage(1); }, [searchText, filterSupplier, filterOutOfStock, filterInactive]);
+  const sorted = useMemo(() => {
+    if (sortBy === 'supplier') {
+      return [...filtered].sort((a, b) => {
+        const sA = supplierMap[a.supplier_id] || '';
+        const sB = supplierMap[b.supplier_id] || '';
+        return sA.localeCompare(sB, 'he') || a.name.localeCompare(b.name, 'he');
+      });
+    }
+    return filtered;
+  }, [filtered, sortBy, supplierMap]);
+
+  React.useEffect(() => { setPage(1); }, [searchText, filterSupplier, filterOutOfStock, filterInactive, sortBy]);
 
   // totalPages — כמה דפים יש בסך הכל (מעוגל למעלה)
   // paginated — רק המוצרים של הדף הנוכחי (slice מתוך filtered)
@@ -46,11 +58,8 @@ const ProductsPage = ({ showToast }) => {
   //   דף 1: slice(0,20)   → 20 מוצרים
   //   דף 2: slice(20,40)  → 20 מוצרים
   //   דף 3: slice(40,60)  → 5 מוצרים
-  const totalPages = Math.max(1, Math.ceil((filtered?.length || 0) / PAGE_SIZE));
-  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-
-  const supplierMap = useMemo(() =>
-    Object.fromEntries((suppliers || []).map(s => [s.id, s.name])), [suppliers]);
+  const totalPages = Math.max(1, Math.ceil((sorted?.length || 0) / PAGE_SIZE));
+  const paginated = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const handleSubmit = async (form) => {
     setSubmitting(true);
@@ -95,7 +104,7 @@ const ProductsPage = ({ showToast }) => {
           <h1 className="page-title">ניהול מלאי</h1>
           {/* מציג ספירה רק אחרי שהנתונים הגיעו — כמו דף הספקים.
               !loading מוודא שלא מציגים "0 מוצרים" לפני שהנתונים הגיעו */}
-          <p className="page-subtitle">{!loading && products ? `${products.length} מוצרים במערכת` : ''}</p>
+          <p className="page-subtitle">{!loading && products ? `${Array.isArray(products) ? products.length : (products?.data?.length || 0)} מוצרים במערכת` : ''}</p>
         </div>
         <Button icon="+" onClick={() => { setEditProduct(null); setModalOpen(true); }}>מוצר חדש</Button>
       </div>
@@ -134,6 +143,10 @@ const ProductsPage = ({ showToast }) => {
             נקה סינון
           </Button>
         )}
+        <div className="products-filters__sort">
+          <button className={`sort-btn${sortBy === 'name' ? ' sort-btn--active' : ''}`} onClick={() => setSortBy('name')}>א-ב</button>
+          <button className={`sort-btn${sortBy === 'supplier' ? ' sort-btn--active' : ''}`} onClick={() => setSortBy('supplier')}>לפי ספק</button>
+        </div>
       </Card>
 
       {/* ─── טבלה ─── */}
@@ -155,7 +168,7 @@ const ProductsPage = ({ showToast }) => {
       {/* ─── ניווט דפים (Pagination) ─────────────────────────────────────────
           מוצג רק אם יש יותר מדף אחד.
           הכפתורים מושבתים בקצוות (לא ניתן ללכת לפני דף 1 או אחרי הדף האחרון) */}
-      {!loading && <Pagination
+      {!loading && <Pagination 
         page={page}
         totalPages={totalPages}
         onChange={setPage}

@@ -1,5 +1,5 @@
 import Pagination from '../Common/Pagination';
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { getInventoryReport, downloadReport } from '../api';
 import { Button, ExportButtons, Card, Badge, EmptyState, Spinner, StatCard } from '../Common/UI';
 import { formatCurrency, downloadBlob, exportToPDF } from '../utils';
@@ -7,6 +7,7 @@ import { formatCurrency, downloadBlob, exportToPDF } from '../utils';
 const InventoryReport = ({ showToast }) => {
   const [data, setData] = useState(null);
   const [page, setPage] = useState(1);
+  const [sortBy, setSortBy] = useState('name'); // 'name' | 'supplier'
   const PAGE_SIZE = 15;
   const [loading, setLoading] = useState(false);
   const [excelLoading, setExcelLoading] = useState(false);
@@ -44,8 +45,19 @@ const InventoryReport = ({ showToast }) => {
   };
 
   const inventory = data?.['מוצרים במלאי'] || [];
-  const totalPages = Math.max(1, Math.ceil(inventory.length / PAGE_SIZE));
-  const inventoryPag = inventory.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  const sortedInventory = useMemo(() => {
+    if (sortBy === 'supplier') {
+      return [...inventory].sort((a, b) =>
+        (a['ספק'] || '').localeCompare(b['ספק'] || '', 'he') ||
+        (a['שם מוצר'] || '').localeCompare(b['שם מוצר'] || '', 'he')
+      );
+    }
+    return inventory;
+  }, [inventory, sortBy]);
+
+  const totalPages = Math.max(1, Math.ceil(sortedInventory.length / PAGE_SIZE));
+  const inventoryPag = sortedInventory.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const InventoryRow = ({ p, hidden = false }) => {
     const qty = p['כמות במלאי'];
@@ -75,6 +87,12 @@ const InventoryReport = ({ showToast }) => {
             excelLoading={excelLoading}
             pdfLoading={pdfLoading}
           />}
+          {data && (
+            <div className="products-filters__sort no-print">
+              <button className={`sort-btn${sortBy === 'name' ? ' sort-btn--active' : ''}`} onClick={() => { setSortBy('name'); setPage(1); }}>א-ב</button>
+              <button className={`sort-btn${sortBy === 'supplier' ? ' sort-btn--active' : ''}`} onClick={() => { setSortBy('supplier'); setPage(1); }}>לפי ספק</button>
+            </div>
+          )}
           <Button onClick={fetchReport} disabled={loading}>{loading ? 'טוען...' : 'הפק דוח'}</Button>
         </div>
       </div>
@@ -97,7 +115,7 @@ const InventoryReport = ({ showToast }) => {
                 </thead>
                 <tbody>
                   {inventoryPag.map((p, i) => <InventoryRow key={i} p={p} />)}
-                  {inventory.slice(PAGE_SIZE).map((p, i) => <InventoryRow key={`pdf-${i}`} p={p} hidden />)}
+                  {sortedInventory.slice(PAGE_SIZE).map((p, i) => <InventoryRow key={`pdf-${i}`} p={p} hidden />)}
                 </tbody>
               </table>
             </div>
