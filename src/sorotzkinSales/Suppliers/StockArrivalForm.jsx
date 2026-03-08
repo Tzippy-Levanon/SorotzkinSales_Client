@@ -30,9 +30,12 @@ const StockArrivalForm = ({ suppliers, products, onSubmit, onClose, loading }) =
   const handleSubmit = (e) => {
     e.preventDefault();
     const errs = {};
+    if (!supplierId) errs.supplierId = 'יש לבחור ספק';
     if (arrivalDate && arrivalDate > new Date().toISOString().split('T')[0]) {
       errs.arrivalDate = 'תאריך הגעה לא יכול להיות בעתיד';
     }
+    const hasEmptyProduct = items.some(i => !i.product_id);
+    if (hasEmptyProduct) errs.products = 'יש לבחור מוצר לכל פריט';
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
     setErrors({});
     onSubmit({
@@ -46,11 +49,11 @@ const StockArrivalForm = ({ suppliers, products, onSubmit, onClose, loading }) =
   return (
     <form onSubmit={handleSubmit}>
       <div className="form-grid-2">
-        <FormField label="ספק" required>
+        <FormField label="ספק" required error={errors.supplierId}>
           <AppSelect
             options={suppliers.map(s => ({ value: s.id, label: s.name }))}
             value={supplierId}
-            onChange={id => { setSupplierId(id); setItems([{ product_id: '', quantity: 1, cost_price: '' }]); }}
+            onChange={id => { setSupplierId(id); setItems([{ product_id: '', quantity: 1, cost_price: '' }]); setErrors(e => ({ ...e, supplierId: '' })); }}
             placeholder="בחר ספק..."
             noOptionsMessage="אין ספקים"
           />
@@ -65,11 +68,11 @@ const StockArrivalForm = ({ suppliers, products, onSubmit, onClose, loading }) =
       <p className="section-label arrival-items-label">פריטים</p>
       {items.map((item, idx) => (
         <div key={idx} className="arrival-item-row">
-          <FormField label={idx === 0 ? 'מוצר' : undefined} required>
+          <FormField label={idx === 0 ? 'מוצר' : undefined} required error={idx === 0 ? errors.products : undefined}>
             <AppSelect
               options={supplierProducts.map(p => ({ value: p.id, label: `${p.name} (מלאי: ${p.total_in_stock})` }))}
               value={item.product_id}
-              onChange={id => setItem(idx, 'product_id', id)}
+              onChange={id => { setItem(idx, 'product_id', id); setErrors(e => ({ ...e, products: '' })); }}
               placeholder={!supplierId ? 'יש לבחור ספק תחילה' : 'בחר מוצר...'}
               disabled={!supplierId}
               noOptionsMessage="אין מוצרים לספק זה"

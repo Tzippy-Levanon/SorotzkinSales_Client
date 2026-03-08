@@ -52,6 +52,8 @@ const PaymentForm = ({ suppliers, onSubmit, onClose, loading }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     const errs = {};
+    if (!form.supplier_id) errs.supplier_id = 'יש לבחור ספק';
+    if (!form.payment_method_id) errs.payment_method_id = 'יש לבחור אמצעי תשלום';
     if (form.date && form.date > new Date().toISOString().split('T')[0]) {
       errs.date = 'תאריך תשלום לא יכול להיות בעתיד';
     }
@@ -70,11 +72,11 @@ const PaymentForm = ({ suppliers, onSubmit, onClose, loading }) => {
 
       {/* ─── בחירת ספק ─────────────────────────────────────────────────── */}
       {/* מציג את כל הספקים עם שמם וחובם הנוכחי */}
-      <FormField label="ספק" required>
+      <FormField label="ספק" required error={errors.supplier_id}>
         <AppSelect
           options={(suppliers || []).map(s => ({ value: s.id, label: `${s.name} — חוב: ₪${(s.balance || 0).toLocaleString('he-IL', { minimumFractionDigits: 2 })}` }))}
           value={form.supplier_id}
-          onChange={id => set('supplier_id', id)}
+          onChange={id => { set('supplier_id', id); setErrors(e => ({ ...e, supplier_id: '' })); }}
           placeholder="בחר ספק..."
           noOptionsMessage="אין ספקים"
         />
@@ -109,11 +111,11 @@ const PaymentForm = ({ suppliers, onSubmit, onClose, loading }) => {
       {/* הרשימה נטענת מהשרת (getPaymentMethods).
           בזמן הטעינה — הדרופדאון מושבת ומציג "טוען..."
           אחרי הטעינה — מציג את כל האפשרויות מה-DB */}
-      <FormField label="אמצעי תשלום" required>
+      <FormField label="אמצעי תשלום" required error={errors.payment_method_id}>
         <AppSelect
           options={(paymentMethods || []).map(m => ({ value: m.id, label: m.name }))}
           value={form.payment_method_id}
-          onChange={id => set('payment_method_id', id)}
+          onChange={id => { set('payment_method_id', id); setErrors(e => ({ ...e, payment_method_id: '' })); }}
           placeholder={loadingMethods ? 'טוען אמצעי תשלום...' : 'בחר אמצעי תשלום...'}
           disabled={loadingMethods}
           noOptionsMessage="אין אמצעי תשלום"
