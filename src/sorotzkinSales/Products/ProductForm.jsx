@@ -21,6 +21,9 @@ const ProductForm = ({ initial, suppliers, onSubmit, onClose, loading }) => {
 
   const validate = () => {
     const errs = {};
+    if (!form.supplier_id) {
+      errs.supplier_id = 'יש לבחור ספק';
+    }
     if (Number(form.selling_price) < Number(form.cost_price)) {
       errs.selling_price = 'מחיר מכירה חייב להיות גדול או שווה למחיר עלות';
     }
@@ -49,11 +52,11 @@ const ProductForm = ({ initial, suppliers, onSubmit, onClose, loading }) => {
       <FormField label="שם מוצר" required>
         <Input value={form.name} onChange={e => set('name', e.target.value)} placeholder="שם המוצר" required />
       </FormField>
-      <FormField label="ספק" required>
+      <FormField label="ספק" required error={errors.supplier_id}>
         <AppSelect
           options={suppliers.map(s => ({ value: s.id, label: s.name }))}
           value={form.supplier_id}
-          onChange={id => set('supplier_id', id)}
+          onChange={id => { set('supplier_id', id); setErrors({}); }}
           placeholder="בחר ספק..."
           noOptionsMessage="אין ספקים"
         />
