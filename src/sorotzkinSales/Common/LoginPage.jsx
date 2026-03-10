@@ -27,7 +27,6 @@ const LoginPage = ({ onLogin }) => {
         await new Promise(r => setTimeout(r, MIN_SPINNER_MS - elapsed));
       }
       onLogin({ ok: true });
-      window.location.reload();
     } catch (e) {
       const elapsed = Date.now() - start;
       if (elapsed < MIN_SPINNER_MS) {

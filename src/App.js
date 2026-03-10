@@ -44,12 +44,12 @@ const App = () => {
     <BrowserRouter>
       {/* האפליקציה תמיד מוצגת — מטושטשת כשלא מחוברים */}
       <div className={user ? '' : 'app-blurred'}>
-      <Navbar user={user} onLogout={handleLogout} />
-      <main className="page-wrapper">
-        <div className="page-content">
-          <Routing showToast={showToast} />
-        </div>
-      </main>
+        <Navbar user={user} onLogout={handleLogout} />
+        <main className="page-wrapper">
+          <div className="page-content">
+            <Routing key={user?.ok} showToast={showToast} />
+          </div>
+        </main>
       </div>
 
       {/* Login overlay — מוצג מעל האפליקציה המטושטשת */}

@@ -152,7 +152,7 @@ const ProductsPage = ({ showToast }) => {
       {/* ─── טבלה ─── */}
       {loading ? (
         <div className="loading-center"><Spinner size="lg" /></div>
-      ) : !products ? null : filtered.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <EmptyState icon="📦" title="לא נמצאו מוצרים" description="נסה לשנות את הסינון או הוסף מוצר חדש" />
       ) : (
         <Card>
