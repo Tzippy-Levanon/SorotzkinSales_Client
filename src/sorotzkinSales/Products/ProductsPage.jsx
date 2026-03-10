@@ -152,7 +152,7 @@ const ProductsPage = ({ showToast }) => {
       {/* ─── טבלה ─── */}
       {loading ? (
         <div className="loading-center"><Spinner size="lg" /></div>
-      ) : filtered.length === 0 ? (
+      ) : !products ? null : filtered.length === 0 ? (
         <EmptyState icon="📦" title="לא נמצאו מוצרים" description="נסה לשנות את הסינון או הוסף מוצר חדש" />
       ) : (
         <Card>
@@ -168,7 +168,7 @@ const ProductsPage = ({ showToast }) => {
       {/* ─── ניווט דפים (Pagination) ─────────────────────────────────────────
           מוצג רק אם יש יותר מדף אחד.
           הכפתורים מושבתים בקצוות (לא ניתן ללכת לפני דף 1 או אחרי הדף האחרון) */}
-      {!loading && <Pagination 
+      {!loading && <Pagination
         page={page}
         totalPages={totalPages}
         onChange={setPage}
