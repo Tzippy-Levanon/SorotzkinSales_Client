@@ -1,10 +1,11 @@
 import Pagination from '../Common/Pagination';
 import React, { useState, useMemo } from 'react';
 import { getSalesReport, downloadReport, getSales } from '../api';
-import { Button, ExportButtons, Card, Badge, EmptyState, Spinner, StatCard, FormField, Input } from '../Common/UI';
+import { Button, ExportButtons, Card, Badge, Spinner, StatCard, FormField, Input } from '../Common/UI';
 import AppSelect from '../Common/AppSelect';
 import { formatCurrency, formatDate, downloadBlob, exportToPDF, useAsync } from '../utils';
 
+// ── SalesReport ── דוח מכירות: רשימה כללית או פרטי מכירה ספציפית
 const SalesReport = ({ showToast }) => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -13,11 +14,7 @@ const SalesReport = ({ showToast }) => {
   const PAGE_SIZE = 15;
   const [prodPage, setProdPage] = useState(1);
   const PROD_PAGE_SIZE = 15;
-  const [sortBy, setSortBy] = useState('name'); // 'name' | 'supplier'
-
-  // ── טעינת רשימת מכירות לדרופדאון ──────────────────────────────────────
-  // useAsync מפעיל את getSales בטעינה ואחסון ב-allSales.
-  // כשהמנהלת בוחרת מכירה — היא בוחרת מהרשימה, לא מקלידה מזהה.
+  const [sortBy, setSortBy] = useState('name');
   const { data: allSales } = useAsync(getSales);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -25,6 +22,7 @@ const SalesReport = ({ showToast }) => {
   const [pdfLoading, setPdfLoading] = useState(false);
   const [excelFilename, setExcelFilename] = useState('דוח מכירות');
 
+  // ── fetchReport ── שולף דוח לפי פרמטרים (תאריכים או מכירה ספציפית)
   const fetchReport = async () => {
     setLoading(true); setData(null);
     try {
@@ -72,6 +70,7 @@ const SalesReport = ({ showToast }) => {
   const products = data?.['מוצרים'] || [];
   const salesList = data?.['מכירות'] || [];
 
+  // ── sortedProducts ── ממיין מוצרים לפי שם או ספק
   const sortedProducts = useMemo(() => {
     if (sortBy === 'supplier') {
       return [...products].sort((a, b) =>
@@ -104,7 +103,6 @@ const SalesReport = ({ showToast }) => {
         </div>
       </div>
 
-      {/* פילטרים */}
       <Card className="report-filters no-print">
         <div className="report-filters__row">
           <FormField label="מכירה ספציפית">
@@ -119,17 +117,15 @@ const SalesReport = ({ showToast }) => {
               value={saleId}
               onChange={id => {
                 setSaleId(id);
-                if (id) { 
-                  setStartDate(''); 
-                  setEndDate(''); 
+                if (id) {
+                  setStartDate('');
+                  setEndDate('');
                 }
               }}
               placeholder="כל המכירות"
               noOptionsMessage="אין מכירות"
             />
           </FormField>
-          {/* עד תאריך מופיע ראשון בJSX כי ב-RTL הראשון מוצג בצד ימין.
-              הסדר הנכון בתצוגה (מימין לשמאל): [עד תאריך] [מתאריך] */}
           <FormField label="מתאריך">
             <Input type="date" value={startDate} onChange={e => { setStartDate(e.target.value); setSaleId(''); }} className="report-filters__input--date" />
           </FormField>
@@ -189,7 +185,7 @@ const SalesReport = ({ showToast }) => {
         </div>
       )}
 
-      {/* ─── פרטי מכירה ─── */}
+      {/* ─── פרטי מכירה ספציפית ─── */}
       {isSaleDetail && (
         <div id="sales-report">
           <div className="report-back-btn no-print">
@@ -210,7 +206,6 @@ const SalesReport = ({ showToast }) => {
               sub={summary?.['סה"כ מחיר מכירה'] > 0 ? `${((summary['רווח'] / summary['סה"כ מחיר מכירה']) * 100).toFixed(1)}% מהמחזור` : ''} />
           </div>
 
-          {/* כפתורי מיון — רק בתצוגה */}
           <div className="products-filters__sort no-print" style={{ marginBottom: '12px' }}>
             <button type="button" className={`sort-btn${sortBy === 'name' ? ' sort-btn--active' : ''}`} onClick={() => { setSortBy('name'); setProdPage(1); }}>א-ב</button>
             <button type="button" className={`sort-btn${sortBy === 'supplier' ? ' sort-btn--active' : ''}`} onClick={() => { setSortBy('supplier'); setProdPage(1); }}>לפי ספק</button>
@@ -218,7 +213,6 @@ const SalesReport = ({ showToast }) => {
 
           <Card>
             <div className="table-wrap">
-              {/* מכירה ספציפית — כל המוצרים, ללא pagination */}
               <table className="data-table">
                 <thead>
                   <tr>
@@ -233,6 +227,7 @@ const SalesReport = ({ showToast }) => {
                     <th>רווח</th>
                   </tr>
                 </thead>
+
                 <tbody>
                   {productsPag.map((p, i) => (
                     <tr key={i}>
@@ -249,7 +244,7 @@ const SalesReport = ({ showToast }) => {
                       </td>
                     </tr>
                   ))}
-                  {/* שורות נסתרות ל-PDF */}
+
                   {sortedProducts.slice(PROD_PAGE_SIZE).map((p, i) => (
                     <tr key={`pdf-${i}`} className="pdf-show-all" style={{ display: 'none' }}>
                       <td><strong>{p['מוצר']}</strong></td>

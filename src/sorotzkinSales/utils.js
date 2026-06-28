@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-// ─── useAsync ─────────────────────────────────────────────────────────────
-// Hook לטעינת נתונים אסינכרונית — מחליף useState+useEffect+try/catch בכל דף.
-// שימוש: const { data, loading, error, refetch } = useAsync(getProducts);
+// ── useAsync ── Hook לטעינת נתונים אסינכרונית עם מצבי loading/error/data
 export const useAsync = (asyncFn, deps = []) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -20,21 +18,20 @@ export const useAsync = (asyncFn, deps = []) => {
   return { data, loading, error, refetch: execute };
 };
 
-// מפרמט מספר לפורמט ₪ ישראלי. דוגמה: 1500 → ‎₪‎1,500.00
+// ── formatCurrency ── פורמט מספר למטבע ₪ ישראלי
 export const formatCurrency = (amount) => {
   if (amount == null) return '—';
   return new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(amount);
 };
 
-// מפרמט תאריך ISO לפורמט ישראלי. דוגמה: "2025-06-01" → "1.6.2025"
+// ── formatDate ── פורמט תאריך ISO לפורמט ישראלי (DD.MM.YYYY)
 export const formatDate = (dateStr) => {
   if (!dateStr) return '—';
   return new Date(dateStr).toLocaleDateString('he-IL');
 };
 
-// מוריד Blob — קורא את שם הקובץ מה-header של השרת אם קיים
+// ── downloadBlob ── הורדת Blob כקובץ — קורא שם מ-Content-Disposition header
 export const downloadBlob = (blob, filename, response) => {
-  // נסה לקרוא שם מ-Content-Disposition header
   let finalName = filename;
   if (response?.headers) {
     const disposition = response.headers.get('Content-Disposition');
@@ -45,24 +42,23 @@ export const downloadBlob = (blob, filename, response) => {
   }
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; 
-  a.download = finalName; 
+  a.href = url;
+  a.download = finalName;
   a.click();
   URL.revokeObjectURL(url);
 };
 
-// מייצא אלמנט HTML כ-PDF — שם הקובץ תואם לאקסל (מחליף .xlsx ב-.pdf)
+// ── exportToPDF ── ייצוא אלמנט HTML כ-PDF באמצעות html2pdf
 export const exportToPDF = async (elementId, excelFilename) => {
   const { default: html2pdf } = await import('html2pdf.js');
   const el = document.getElementById(elementId);
   if (!el) return;
 
-  // המר שם אקסל ל-PDF: "דוח מלאי.xlsx" → "דוח מלאי.pdf"
   const pdfName = excelFilename
     ? excelFilename.replace(/\.xlsx$/i, '')
     : 'דוח';
 
-  // הסתר אלמנטים שלא אמורים להופיע ב-PDF
+  // הסתרת אלמנטים שלא אמורים להופיע ב-PDF, חשיפת שורות נסתרות
   const hidden = el.querySelectorAll('.no-print');
   hidden.forEach(n => n.style.setProperty('display', 'none', 'important'));
   const allRows = el.querySelectorAll('.pdf-show-all');

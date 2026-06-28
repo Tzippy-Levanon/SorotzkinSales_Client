@@ -2,15 +2,14 @@ import Swal from 'sweetalert2';
 import React, { useState, useMemo } from 'react';
 import { Button } from '../Common/UI';
 
-// ─── CloseSaleForm ────────────────────────────────────────────────────────
-// טופס סגירת מכירה — מזין כמות שנותרה לכל מוצר ומחשב כמה נמכר.
-// saleId: מזהה המכירה. saleItems: [{product_id, opening_stock, products:{name}}]
+// ── CloseSaleForm ── טופס סגירת מכירה — הזנת כמות שנותרה לכל מוצר וחישוב כמה נמכר.
 const CloseSaleForm = ({ saleId, saleItems, onSubmit, onClose, loading, products, supplierMap = {} }) => {
   const [remaining, setRemaining] = useState(
     Object.fromEntries(saleItems.map(i => [i.product_id, i.opening_stock]))
   );
   const [sortBy, setSortBy] = useState('name'); // 'name' | 'supplier'
 
+  // ── sortedItems ── מוצרים ממוינים לפי שם או ספק
   const sortedItems = useMemo(() => {
     if (sortBy === 'supplier') {
       return [...saleItems].sort((a, b) => {
@@ -24,16 +23,16 @@ const CloseSaleForm = ({ saleId, saleItems, onSubmit, onClose, loading, products
     return saleItems;
   }, [saleItems, sortBy, supplierMap, products]);
 
+  // ── setR ── עדכון כמות שנותרה — מוגבלת בין 0 לכמות הפתיחה
   const setR = (id, val) =>
     setRemaining(r => ({
       ...r,
       [id]: Math.max(0, Math.min(Number(val), saleItems.find(i => i.product_id === id)?.opening_stock ?? Infinity))
     }));
 
+  // ── handleSubmit ── בדיקת חוסר מלאי ואישור לפני סגירה
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // בדיקת חוסר מלאי
     const warnings = [];
     saleItems.forEach(item => {
       const rem = remaining[item.product_id] ?? 0;

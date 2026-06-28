@@ -1,11 +1,7 @@
 import React from 'react';
 import ReactSelect from 'react-select';
 
-// ─── AppSelect ──────────────────────────────────────────────────────────────
-// קומפוננטה גנרית לכל dropdown באתר — עקבית, לא גולשת, עם חיפוש.
-// options: [{ value, label }]
-// value, onChange, placeholder, disabled, isRtl
-
+// ── getStyles ── סגנון מותאם ל-react-select תואם לעיצוב המערכת
 const getStyles = () => ({
     control: (base, state) => ({
         ...base,
@@ -68,6 +64,7 @@ const getStyles = () => ({
     }),
 });
 
+// ── AppSelect ── dropdown אחיד לכל המערכת עם חיפוש ו-RTL
 const AppSelect = ({
     options = [],
     value,

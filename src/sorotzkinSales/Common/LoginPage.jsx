@@ -2,26 +2,21 @@ import React, { useState } from 'react';
 import { login } from '../api';
 import { Spinner } from './UI';
 
-const MIN_SPINNER_MS = 900; // השהייה מינימלית להרגשה טבעית
-// ─── LoginPage ────────────────────────────────────────────────────────────
-// מוצג כ-overlay מעל האפליקציה (בדיוק כמו מודל עדכון מוצר):
-//   - הרקע מטושטש ומאופל
-//   - הכרטיס מרכוזי, לבן, עם border-radius
-//   - אי אפשר לסגור / לברוח — אין כפתור X
-// props:
-//   onLogin — callback שמקבל את אובייקט המשתמש אחרי התחברות מוצלחת
+const MIN_SPINNER_MS = 900;
+
+// ── LoginPage ── overlay התחברות עם סיסמה. מוצג מעל האפליקציה המטושטשת
 const LoginPage = ({ onLogin }) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // ── handleSubmit ── שליחת סיסמה לשרת עם השהייה מינימלית למניעת הבזק
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true); setError('');
     const start = Date.now();
     try {
       await login({ password });
-      // המתן לפחות MIN_SPINNER_MS לפני מעבר
       const elapsed = Date.now() - start;
       if (elapsed < MIN_SPINNER_MS) {
         await new Promise(r => setTimeout(r, MIN_SPINNER_MS - elapsed));
@@ -61,7 +56,6 @@ const LoginPage = ({ onLogin }) => {
               autoComplete="current-password"
               dir="ltr"
             />
-            {/* שגיאה מתחת לשדה — טקסט פשוט בלי מסגרת */}
             {error && (
               <div className="login-error">
                 <span>⚠️</span> {error}

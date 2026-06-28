@@ -1,11 +1,9 @@
-// ─── URL ─────────────────────────────────────────────────────────────────
-// פיתוח:  http://localhost:5000/api  (ברירת מחדל)
-// ייצור:  הגדר REACT_APP_API_URL=https://your-domain.com/api  ב-Netlify
 const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
-// ─── Network error handling ───────────────────────────────────────────────
+// Network error handling
 const TIMEOUT_MS = 12000;
 
+// ── fetchWithTimeout ── שולח בקשת fetch עם timeout אוטומטי
 const fetchWithTimeout = (url, options = {}) => {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), TIMEOUT_MS);
@@ -13,16 +11,17 @@ const fetchWithTimeout = (url, options = {}) => {
     .finally(() => clearTimeout(id));
 };
 
+// ── handleResponse ── ממיר תגובת שרת ל-JSON, זורק שגיאה אם הסטטוס לא תקין
 const handleResponse = async (res) => {
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || `שגיאה: ${res.status}`);
   return data;
 };
 
+// ── handleNetworkError ── מתרגם שגיאות רשת להודעות עברית ברורות
 const handleNetworkError = (e) => {
   if (e.name === 'AbortError') throw new Error('הבקשה אורכת יותר מדי זמן — בדוק חיבור לשרת');
   if (!navigator.onLine) throw new Error('אין חיבור לאינטרנט');
-  // אם השגיאה כבר מ-handleResponse (שגיאת שרת כמו 400/409) — העבר אותה כמו שהיא
   if (e.message && !e.message.includes('fetch') && !e.message.includes('Failed')) throw e;
   throw new Error('השרת אינו זמין כרגע — נסה שוב מאוחר יותר');
 };
@@ -86,6 +85,7 @@ export const getInventoryReport = () => api.get('/reports/inventory');
 export const getSalesReport = (params = {}) => api.get(`/reports/sales?${new URLSearchParams(params)}`);
 export const getSuppliersReport = () => api.get('/reports/suppliers');
 
+// ── downloadReport ── הורדת קובץ (Excel/PDF) מהשרת כ-Blob
 export const downloadReport = async (path) => {
   try {
     const controller = new AbortController();

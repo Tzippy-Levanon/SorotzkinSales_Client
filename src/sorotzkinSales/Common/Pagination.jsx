@@ -1,7 +1,5 @@
 import React from 'react';
 
-// ─── Pagination ─────────────────────────────────────────────────────────────
-// props: page, totalPages, onChange(newPage)
 const Pagination = ({ page, totalPages, onChange }) => {
     if (totalPages <= 1) return null;
 

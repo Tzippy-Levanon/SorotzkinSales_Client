@@ -4,6 +4,7 @@ import { getInventoryReport, downloadReport } from '../api';
 import { Button, ExportButtons, Card, Badge, EmptyState, Spinner, StatCard } from '../Common/UI';
 import { formatCurrency, downloadBlob, exportToPDF } from '../utils';
 
+// ── InventoryReport ── דוח מצב מלאי עם ייצוא Excel/PDF ומיון
 const InventoryReport = ({ showToast }) => {
   const [data, setData] = useState(null);
   const [page, setPage] = useState(1);
@@ -14,6 +15,7 @@ const InventoryReport = ({ showToast }) => {
   const [pdfLoading, setPdfLoading] = useState(false);
   const [excelFilename, setExcelFilename] = useState('דוח מלאי');
 
+  // ── fetchReport ── שולף נתוני מלאי מהשרת
   const fetchReport = async () => {
     setLoading(true);
     try { setData(await getInventoryReport()); }
@@ -21,6 +23,7 @@ const InventoryReport = ({ showToast }) => {
     finally { setLoading(false); }
   };
 
+  // ── handleExcel ── הורדת דוח Excel מהשרת
   const handleExcel = async () => {
     setExcelLoading(true);
     try {
@@ -37,6 +40,7 @@ const InventoryReport = ({ showToast }) => {
     finally { setExcelLoading(false); }
   };
 
+  // ── handlePDF ── ייצוא תצוגת הדוח הנוכחית כ-PDF
   const handlePDF = async () => {
     setPdfLoading(true);
     try { await exportToPDF('inventory-report', excelFilename); }
@@ -59,6 +63,7 @@ const InventoryReport = ({ showToast }) => {
   const totalPages = Math.max(1, Math.ceil(sortedInventory.length / PAGE_SIZE));
   const inventoryPag = sortedInventory.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
+  // ── InventoryRow ── שורת טבלה. hidden=true = נסתרת בתצוגה, מוצגת ב-PDF
   const InventoryRow = ({ p, hidden = false }) => {
     const qty = p['כמות במלאי'];
     const cost = p['מחיר עלות'];
@@ -115,6 +120,7 @@ const InventoryReport = ({ showToast }) => {
                 </thead>
                 <tbody>
                   {inventoryPag.map((p, i) => <InventoryRow key={i} p={p} />)}
+                  {/* שורות נסתרות לדפים 2+ — מוצגות רק ב-PDF */}
                   {sortedInventory.slice(PAGE_SIZE).map((p, i) => <InventoryRow key={`pdf-${i}`} p={p} hidden />)}
                 </tbody>
               </table>

@@ -4,6 +4,7 @@ import { getSuppliersReport, downloadReport } from '../api';
 import { Button, ExportButtons, Card, EmptyState, Spinner, StatCard } from '../Common/UI';
 import { formatCurrency, downloadBlob, exportToPDF } from '../utils';
 
+// ── SuppliersReport ── דוח ספקים: ריכוז חובות ויתרות לכל הספקים
 const SuppliersReport = ({ showToast }) => {
   const [data, setData] = useState(null);
   const [page, setPage] = useState(1);

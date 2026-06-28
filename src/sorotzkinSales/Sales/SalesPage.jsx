@@ -1,30 +1,33 @@
 import Pagination from '../Common/Pagination';
 import React, { useState, useMemo } from 'react';
-import { useAsync } from '../utils';                                    // תוקן
-import { getSales, addSale, getSuppliers } from '../api';                              // תוקן
-import { getProducts } from '../api';                              // תוקן
+import { useAsync } from '../utils';
+import { getSales, addSale, getSuppliers } from '../api';
+import { getProducts } from '../api';
 import { Button, Modal, FormField, Input, Card, EmptyState, Spinner } from '../Common/UI';
 import SaleCard from './SaleCard';
 
+// ── SalesPage ── דף ניהול מכירות: רשימת כרטיסי מכירה ויצירת מכירה חדשה
 const SalesPage = ({ showToast }) => {
   const { data: sales, loading, refetch } = useAsync(getSales);
-
-  // Pagination — 5 מכירות לדף (כרטיסים גדולים, לא שורות קטנות)
-  const [page, setPage] = useState(1);
-  const PAGE_SIZE = 10; // 10 מכירות בדף
-  const totalPages = Math.max(1, Math.ceil((sales?.length || 0) / PAGE_SIZE));
-  const paginated = (sales || []).slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const { data: products } = useAsync(getProducts);
   const { data: suppliers } = useAsync(getSuppliers);
+
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10;
+  const totalPages = Math.max(1, Math.ceil((sales?.length || 0) / PAGE_SIZE));
+  const paginated = (sales || []).slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
   const supplierMap = useMemo(
     () => Object.fromEntries((suppliers || []).map(s => [s.id, s.name])),
     [suppliers]
   );
+
   const [newSaleModal, setNewSaleModal] = useState(false);
   const [form, setForm] = useState({ name: '', date: '' });
   const [submitting, setSubmitting] = useState(false);
   const [expandedSale, setExpandedSale] = useState(null);
 
+    // ── handleAddSale ── יצירת מכירה חדשה
   const handleAddSale = async (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -40,7 +43,6 @@ const SalesPage = ({ showToast }) => {
 
   return (
     <div>
-      {/* ─── כותרת עמוד ─── */}
       <div className="page-header">
         <div>
           <h1 className="page-title">ניהול מכירות</h1>
@@ -49,7 +51,6 @@ const SalesPage = ({ showToast }) => {
         <Button icon="+" onClick={() => setNewSaleModal(true)}>מכירה חדשה</Button>
       </div>
 
-      {/* ─── רשימת מכירות ─── */}
       {loading ? (
         <div className="loading-center"><Spinner size="lg" /></div>
       ) : !sales?.length ? (
@@ -72,14 +73,12 @@ const SalesPage = ({ showToast }) => {
         </div>
       )}
 
-      {/* ניווט דפים */}
       {!loading && <Pagination
         page={page}
         totalPages={totalPages}
         onChange={setPage}
       />}
 
-      {/* ─── מודל מכירה חדשה ─── */}
       <Modal isOpen={newSaleModal} onClose={() => setNewSaleModal(false)} title="מכירה חדשה" width="420px">
         <form onSubmit={handleAddSale}>
           <FormField label="שם המכירה" required>

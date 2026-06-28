@@ -2,10 +2,7 @@ import React, { useState } from 'react';
 import { Button, FormField, Input } from '../Common/UI';
 import AppSelect from '../Common/AppSelect';
 
-// ─── ProductForm ──────────────────────────────────────────────────────────
-// טופס הוספה/עריכה של מוצר.
-// initial: מוצר קיים לעריכה (null = הוספה חדשה)
-// suppliers: רשימת ספקים לbחירה
+// ── ProductForm ── טופס הוספה/עריכה של מוצר. initial=null להוספה, אובייקט לעריכה
 const ProductForm = ({ initial, suppliers, onSubmit, onClose, loading }) => {
   const [form, setForm] = useState({
     name: initial?.name || '',
@@ -19,6 +16,7 @@ const ProductForm = ({ initial, suppliers, onSubmit, onClose, loading }) => {
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
   const [errors, setErrors] = useState({});
 
+  // ── validate ── בדיקות תקינות לפני שליחה
   const validate = () => {
     const errs = {};
     if (!form.supplier_id) {
@@ -52,6 +50,7 @@ const ProductForm = ({ initial, suppliers, onSubmit, onClose, loading }) => {
       <FormField label="שם מוצר" required>
         <Input value={form.name} onChange={e => set('name', e.target.value)} placeholder="שם המוצר" required />
       </FormField>
+
       <FormField label="ספק" required error={errors.supplier_id}>
         <AppSelect
           options={suppliers.map(s => ({ value: s.id, label: s.name }))}
@@ -61,6 +60,7 @@ const ProductForm = ({ initial, suppliers, onSubmit, onClose, loading }) => {
           noOptionsMessage="אין ספקים"
         />
       </FormField>
+
       <div className="form-grid-2">
         <FormField label="מחיר עלות" required>
           <Input type="number" min="0" step="0.01" value={form.cost_price} onChange={e => set('cost_price', e.target.value)} placeholder="0.00" required />
@@ -69,6 +69,7 @@ const ProductForm = ({ initial, suppliers, onSubmit, onClose, loading }) => {
           <Input type="number" min="0" step="0.01" value={form.selling_price} onChange={e => { set('selling_price', e.target.value); setErrors({}); }} placeholder="0.00" required />
         </FormField>
       </div>
+
       <div className="form-grid-2">
         <FormField label='כמות במלאי'>
           <Input type="number" min="0" value={form.total_in_stock} onChange={e => set('total_in_stock', e.target.value)} placeholder="0" />
@@ -83,6 +84,7 @@ const ProductForm = ({ initial, suppliers, onSubmit, onClose, loading }) => {
           </FormField>
         )}
       </div>
+
       <div className="form-actions">
         <Button variant="ghost" onClick={onClose} type="button">ביטול</Button>
         <Button type="submit" disabled={loading}>{loading ? 'שומר...' : initial ? 'עדכון' : 'הוספה'}</Button>

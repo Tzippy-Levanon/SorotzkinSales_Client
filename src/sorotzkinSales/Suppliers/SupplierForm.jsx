@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button, FormField, Input } from '../Common/UI';
 
+// ── SupplierForm ── טופס הוספה/עריכה של ספק עם ולידציה של טלפון ומייל
 const SupplierForm = ({ initial, onSubmit, onClose, loading }) => {
   const [form, setForm] = useState({
     name: initial?.name || '',
@@ -11,6 +12,7 @@ const SupplierForm = ({ initial, onSubmit, onClose, loading }) => {
   const [errors, setErrors] = useState({});
   const set = (k, v) => { setForm(f => ({ ...f, [k]: v })); setErrors(e => ({ ...e, [k]: '' })); };
 
+    // ── validate ── חובה לפחות טלפון או מייל + בדיקת פורמט
   const validate = () => {
     const errs = {};
     if (!form.phone && !form.email) {

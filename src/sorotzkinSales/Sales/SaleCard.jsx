@@ -7,6 +7,7 @@ import { addProductsToSale, closeSale, getSaleDetail, removeSaleItem, deleteSale
 import ProductPicker from './ProductPicker';
 import CloseSaleForm from './CloseSaleForm';
 
+// ── SaleCard ── כרטיס מכירה: כותרת קבועה + פאנל פרטים נפתח (accordion)
 const SaleCard = ({ sale, products, supplierMap = {}, showToast, refetch, isExpanded, onToggle, onCollapse }) => {
   const [addModal, setAddModal] = useState(false);
   const [closeModal, setCloseModal] = useState(false);
@@ -24,6 +25,7 @@ const SaleCard = ({ sale, products, supplierMap = {}, showToast, refetch, isExpa
 
   React.useEffect(() => { if (!isExpanded) setProdPage(1); }, [isExpanded]);
 
+    // ── handleToggle ── פתיחת/סגירת הפאנל + טעינת פרטי מכירה
   const handleToggle = async () => {
     onToggle();
     if (!isExpanded && !saleDetail) {
@@ -34,6 +36,7 @@ const SaleCard = ({ sale, products, supplierMap = {}, showToast, refetch, isExpa
     }
   };
 
+    // ── fetchAndOpenClose ── טעינת פריטי המכירה לפני פתיחת טופס הסגירה
   const fetchAndOpenClose = async () => {
     setLoading(true);
     try {
@@ -57,6 +60,7 @@ const SaleCard = ({ sale, products, supplierMap = {}, showToast, refetch, isExpa
     finally { setLoading(false); }
   };
 
+    // ── handleDeleteSale ── מחיקת מכירה פתוחה עם אישור
   const handleDeleteSale = async () => {
     const result = await Swal.fire({
       title: 'מחיקת מכירה',
@@ -79,6 +83,7 @@ const SaleCard = ({ sale, products, supplierMap = {}, showToast, refetch, isExpa
     finally { setLoading(false); }
   };
 
+    // ── handleRemoveProduct ── הסרת מוצר ממכירה פתוחה
   const handleRemoveProduct = async (productName) => {
     const result = await Swal.fire({
       title: 'הסרת מוצר',
@@ -106,6 +111,7 @@ const SaleCard = ({ sale, products, supplierMap = {}, showToast, refetch, isExpa
     finally { setLoading(false); }
   };
 
+    // ── handleAddProducts ── הוספת מוצרים נבחרים למכירה
   const handleAddProducts = async () => {
     if (!selectedProducts.length) return showToast('יש לבחור לפחות מוצר אחד', 'error');
     setLoading(true);
@@ -132,6 +138,7 @@ const SaleCard = ({ sale, products, supplierMap = {}, showToast, refetch, isExpa
     finally { setLoading(false); }
   };
 
+    // ── handleCloseSale ── סגירת המכירה ועדכון מלאי
   const handleCloseSale = async (saleId, prods) => {
     setLoading(true);
     try {
@@ -168,10 +175,8 @@ const SaleCard = ({ sale, products, supplierMap = {}, showToast, refetch, isExpa
         </div>
       </div>
 
-      {/* ─── פאנל פרטים נפתח ─── */}
       {isExpanded && (
         <div className="sale-detail">
-          {/* כפתורי פעולה — רק למכירה פתוחה */}
           {isOpen && (
             <div className="sale-detail__actions">
               <Button size="sm" variant="secondary" onClick={() => setAddModal(true)}>+ הוסף מוצרים</Button>
@@ -227,7 +232,6 @@ const SaleCard = ({ sale, products, supplierMap = {}, showToast, refetch, isExpa
                 onChange={setProdPage}
               />
 
-              {/* סיכום כספי — רק למכירה סגורה */}
               {!isOpen && summary && (
                 <div className="sale-detail__summary">
                   <span>סה"כ הכנסה: <strong>{formatCurrency(summary['סה"כ מחיר מכירה'])}</strong></span>
@@ -241,7 +245,6 @@ const SaleCard = ({ sale, products, supplierMap = {}, showToast, refetch, isExpa
         </div>
       )}
 
-      {/* ─── מודל הוספת מוצרים ─── */}
       <Modal isOpen={addModal} onClose={() => { setAddModal(false); setSelectedProducts([]); }}
         title={`הוספת מוצרים — ${sale.name}`} width="620px">
         <ProductPicker
@@ -258,7 +261,6 @@ const SaleCard = ({ sale, products, supplierMap = {}, showToast, refetch, isExpa
         </div>
       </Modal>
 
-      {/* ─── מודל סגירת מכירה ─── */}
       <Modal isOpen={closeModal} onClose={() => setCloseModal(false)}
         title={`סגירת מכירה — ${sale.name}`} width="580px">
         {saleItems && (

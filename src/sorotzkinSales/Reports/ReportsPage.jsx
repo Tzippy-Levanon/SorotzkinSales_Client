@@ -9,8 +9,7 @@ const TABS = [
   { id: 'suppliers', label: 'ספקים', icon: '🏢' },
 ];
 
-// ─── ReportsPage ──────────────────────────────────────────────────────────
-// מארגן את שלושת הדוחות בטאבים. כל דוח הוא קומפוננטה עצמאית.
+// ── ReportsPage ── מארגן את 3 הדוחות בטאבים. כל דוח רכיב עצמאי
 const ReportsPage = ({ showToast }) => {
   const [activeTab, setActiveTab] = useState('inventory');
   

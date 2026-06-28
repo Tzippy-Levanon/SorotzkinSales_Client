@@ -5,8 +5,6 @@ import SalesPage from '../Sales/SalesPage';
 import SuppliersPage from '../Suppliers/SuppliersPage';
 import ReportsPage from '../Reports/ReportsPage';
 
-// ─── Routing ─────────────────────────────────────────────────────────────
-// מגדיר את כל נתיבי ה-URL באפליקציה.
 // showToast מועברת לכל דף כדי שיוכלו להציג הודעות מערכת.
 const Routing = ({ showToast }) => (
   <Routes>

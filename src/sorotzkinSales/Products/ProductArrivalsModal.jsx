@@ -4,6 +4,7 @@ import Pagination from '../Common/Pagination';
 import { formatDate, formatCurrency, useAsync } from '../utils';
 import { getProductArrivals } from '../api';
 
+// ── ProductArrivalsModal ── מודל היסטוריית הגעות מלאי למוצר ספציפי
 const ProductArrivalsModal = ({ productId, productName, isOpen, onClose }) => {
     const [page, setPage] = useState(1);
     const PAGE_SIZE = 8;
@@ -13,7 +14,7 @@ const ProductArrivalsModal = ({ productId, productName, isOpen, onClose }) => {
         [productId]
     );
 
-    // איפוס לדף 1 כשפותחים מוצר חדש
+    // איפוס לדף 1 בפתיחת מוצר חדש
     React.useEffect(() => { setPage(1); }, [productId]);
 
     const allArrivals = arrivals || [];

@@ -1,19 +1,24 @@
 import React, { useState, useMemo } from 'react';
-import { Button, FormField, Input, Select } from '../Common/UI';
+import { Button, FormField, Input } from '../Common/UI';
 import AppSelect from '../Common/AppSelect';
 
+// ── StockArrivalForm ── טופס רישום הגעת סחורה מספק עם מספר פריטים דינמיים
 const StockArrivalForm = ({ suppliers, products, onSubmit, onClose, loading }) => {
   const [supplierId, setSupplierId] = useState('');
   const [arrivalDate, setArrivalDate] = useState('');
   const [notes, setNotes] = useState('');
   const [items, setItems] = useState([{ product_id: '', quantity: 1, cost_price: '' }]);
+  const [errors, setErrors] = useState({});
 
+  // ── supplierProducts ── מסנן רק מוצרים של הספק הנבחר
   const supplierProducts = useMemo(() =>
     (products || []).filter(p => String(p.supplier_id) === String(supplierId)),
     [products, supplierId]);
 
   const addItem = () => setItems(i => [...i, { product_id: '', quantity: 1, cost_price: '' }]);
   const removeItem = (idx) => setItems(i => i.filter((_, j) => j !== idx));
+
+  // ── setItem ── עדכון שדה בפריט. בבחירת מוצר — ממלא מחיר עלות אוטומטית
   const setItem = (idx, key, val) => setItems(prev =>
     prev.map((item, j) => {
       if (j !== idx) return item;
@@ -24,8 +29,6 @@ const StockArrivalForm = ({ suppliers, products, onSubmit, onClose, loading }) =
       }
       return updated;
     }));
-
-  const [errors, setErrors] = useState({});
 
   const handleSubmit = (e) => {
     e.preventDefault();

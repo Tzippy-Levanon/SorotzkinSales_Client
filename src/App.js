@@ -10,11 +10,13 @@ import './sorotzkinSales/Style/base.css';
 import './sorotzkinSales/Style/components.css';
 import './sorotzkinSales/Style/pages.css';
 
+// רכיב שורש — מנהל אימות משתמש והודעות מערכת
 const App = () => {
   const [user, setUser] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [toasts, setToasts] = useState([]);
 
+  // בדיקת סשן קיים בטעינה
   useEffect(() => {
     getMe()
       .then(u => setUser(u))

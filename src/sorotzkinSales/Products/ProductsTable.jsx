@@ -3,6 +3,7 @@ import { Button, Badge } from '../Common/UI';
 import { formatCurrency } from '../utils';
 import ProductArrivalsModal from './ProductArrivalsModal';
 
+// ── ProductsTable ── טבלת מוצרים עם כפתורי עריכה, הגעות והשבתה
 const ProductsTable = ({ products, supplierMap, onEdit, onDeactivate }) => {
   const [arrivalsProduct, setArrivalsProduct] = useState(null);
   

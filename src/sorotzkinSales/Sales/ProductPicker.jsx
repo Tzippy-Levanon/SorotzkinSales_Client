@@ -1,13 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { formatCurrency } from '../utils';
 
-// ─── ProductPicker ────────────────────────────────────────────────────────
-// בוחר מוצרים עם חיפוש, צ'קבוקס ובחירת כמות.
-// products: רשימת מוצרים פעילים. selected: [{product_id, quantity}]. onChange: callback
+// ── ProductPicker ── בוחר מוצרים עם חיפוש, מיון, צ'קבוקס ובחירת כמות
 const ProductPicker = ({ products, selected, onChange, supplierMap = {} }) => {
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('name');
 
+  // ── filtered ── מסנן וממיין את רשימת המוצרים
   const filtered = useMemo(() => {
     const list = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
     if (sortBy === 'supplier') {
@@ -20,11 +19,13 @@ const ProductPicker = ({ products, selected, onChange, supplierMap = {} }) => {
     return list;
   }, [products, search, sortBy, supplierMap]);
 
+  // ── toggle ── הוספה/הסרה של מוצר מהרשימה הנבחרת
   const toggle = (prod) => onChange(prev =>
     prev.find(x => x.product_id === prod.id)
       ? prev.filter(x => x.product_id !== prod.id)
       : [...prev, { product_id: prod.id, quantity: prod.total_in_stock }]);
 
+  // ── setQty ── עדכון כמות מוגבלת למלאי הקיים
   const setQty = (id, qty, maxStock) => {
     const val = Math.max(1, Math.min(Number(qty), maxStock));
     // כמות מוגבלת אוטומטית ל-maxStock

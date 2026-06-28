@@ -1,8 +1,7 @@
-import Pagination from '../Common/Pagination';
 import React, { useState, useMemo } from 'react';
+import Pagination from '../Common/Pagination';
 import { useAsync } from '../utils';
-import { getSuppliers, addSupplier, updateSupplier, recordStockArrival, recordPayment, uploadInvoice, getSupplierPayments } from '../api';
-import { getProducts } from '../api';
+import { getSuppliers, addSupplier, updateSupplier, recordStockArrival, recordPayment, uploadInvoice, getSupplierPayments, getProducts } from '../api';
 import { Button, Modal, FormField, Input, EmptyState, Spinner } from '../Common/UI';
 import AppSelect from '../Common/AppSelect';
 import { formatCurrency, formatDate } from '../utils';
@@ -11,6 +10,7 @@ import SupplierForm from './SupplierForm';
 import StockArrivalForm from './StockArrivalForm';
 import PaymentForm from './PaymentForm';
 
+// ── SuppliersPage ── דף ניהול ספקים: גריד כרטיסים + 4 מודאלים לפעולות
 const SuppliersPage = ({ showToast }) => {
   const { data: _suppliersRaw, loading, refetch } = useAsync(getSuppliers);
   const suppliers = Array.isArray(_suppliersRaw) ? _suppliersRaw
@@ -21,16 +21,11 @@ const SuppliersPage = ({ showToast }) => {
   const [modal, setModal] = useState(null);
   const [editSupplier, setEditSupplier] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-
-  // ─── העלאת חשבונית ───────────────────────────────────────────────────────
   const [invoiceFile, setInvoiceFile] = useState(null);
-  const [invoiceForm, setInvoiceForm] = useState({
-    supplier_id: '', supplier_payment_id: '', amount: '', reference_number: ''
-  });
+  const [invoiceForm, setInvoiceForm] = useState({ supplier_id: '', supplier_payment_id: '', amount: '', reference_number: '' });
   const [supplierPayments, setSupplierPayments] = useState([]);
   const [loadingPayments, setLoadingPayments] = useState(false);
 
-  // ─── pagination ──────────────────────────────────────────────────────────
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 12;
   const totalDebt = useMemo(() => (suppliers || []).reduce((s, sup) => s + (sup.balance || 0), 0), [suppliers]);
@@ -44,6 +39,7 @@ const SuppliersPage = ({ showToast }) => {
     setSupplierPayments([]);
   };
 
+    // ── handleSubmitSupplier ── שמירת ספק חדש או עדכון קיים
   const handleSubmitSupplier = async (form) => {
     setSubmitting(true);
     try {
@@ -89,7 +85,7 @@ const SuppliersPage = ({ showToast }) => {
     finally { setSubmitting(false); }
   };
 
-  // כשנבחר ספק בטופס חשבונית — טוען את התשלומים שלו
+  // ── handleSupplierChange ── טוען תשלומים של ספק נבחר בטופס החשבונית
   const handleSupplierChange = async (supplierId) => {
     setInvoiceForm(f => ({ ...f, supplier_id: supplierId, supplier_payment_id: '' }));
     if (!supplierId) { setSupplierPayments([]); return; }
@@ -121,7 +117,6 @@ const SuppliersPage = ({ showToast }) => {
 
   return (
     <div>
-      {/* ─── כותרת עמוד ─── */}
       <div className="page-header">
         <div>
           <h1 className="page-title">ניהול ספקים</h1>
@@ -135,7 +130,6 @@ const SuppliersPage = ({ showToast }) => {
         </div>
       </div>
 
-      {/* ─── גריד ספקים ─── */}
       {loading ? (
         <div className="loading-center"><Spinner size="lg" /></div>
       ) : !suppliers?.length ? (
@@ -148,14 +142,12 @@ const SuppliersPage = ({ showToast }) => {
         </div>
       )}
 
-      {/* pagination */}
       {!loading && <Pagination
         page={page}
         totalPages={totalPages}
         onChange={setPage}
       />}
 
-      {/* ─── מודאלים ─── */}
       <Modal isOpen={modal === 'add'} onClose={closeModal} title="הוספת ספק חדש">
         <SupplierForm onSubmit={handleSubmitSupplier} onClose={closeModal} loading={submitting} />
       </Modal>
@@ -169,11 +161,9 @@ const SuppliersPage = ({ showToast }) => {
         <PaymentForm suppliers={suppliers || []} onSubmit={handlePayment} onClose={closeModal} loading={submitting} />
       </Modal>
 
-      {/* ─── העלאת חשבונית — ספק → תשלום → קובץ ─── */}
       <Modal isOpen={modal === 'invoice'} onClose={closeModal} title="העלאת חשבונית / קבלה" width="480px">
         <form onSubmit={handleUploadInvoice} noValidate>
 
-          {/* שלב 1: בחירת ספק */}
           <FormField label="ספק" required>
             <AppSelect
               options={(suppliers || []).map(s => ({ value: s.id, label: s.name }))}
@@ -184,7 +174,6 @@ const SuppliersPage = ({ showToast }) => {
             />
           </FormField>
 
-          {/* שלב 2: בחירת תשלום — מופיע רק אחרי בחירת ספק */}
           <FormField label="תשלום" required>
             {loadingPayments ? (
               <div className="invoice-payments-loading"><Spinner size="sm" /> טוען תשלומים...</div>
@@ -206,7 +195,6 @@ const SuppliersPage = ({ showToast }) => {
             )}
           </FormField>
 
-          {/* שלב 3: קובץ + פרטים נוספים */}
           <FormField label="קובץ (PDF / תמונה / Word)" required>
             <input type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
               className="form-input" onChange={e => setInvoiceFile(e.target.files[0])} />

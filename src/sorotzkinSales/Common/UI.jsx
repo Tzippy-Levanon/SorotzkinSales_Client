@@ -1,21 +1,16 @@
 import React, { useEffect } from 'react';
-// כל העיצוב נמצא ב-components.css — כאן רק מבנה HTML + classes
 
-// ─── Spinner ──────────────────────────────────────────────────────────────
-// גלגל טעינה מסתובב. size: 'sm' | 'md' | 'lg'
+// ── Spinner ── גלגל טעינה. size: 'sm' | 'md' | 'lg'
 export const Spinner = ({ size = 'md' }) => (
   <div className={`spinner spinner--${size}`} />
 );
 
-// ─── Badge ────────────────────────────────────────────────────────────────
-// תגית מעוגלת. variant: 'default' | 'success' | 'danger' | 'warning' | 'accent'
+// ── Badge ── תגית מעוגלת. variant: 'default' | 'success' | 'danger' | 'warning' | 'accent'
 export const Badge = ({ children, variant = 'default' }) => (
   <span className={`badge badge--${variant}`}>{children}</span>
 );
 
-// ─── Button ───────────────────────────────────────────────────────────────
-// כפתור. variant: 'primary'|'secondary'|'danger'|'success'|'ghost'
-// size: 'sm'|'md'|'lg'. icon: תו לפני הטקסט (אופציונלי)
+// ── Button ── כפתור. variant: 'primary' | 'secondary' | 'danger' | 'success' | 'ghost'. size: 'sm'|'md'|'lg'
 export const Button = ({ children, variant = 'primary', size, onClick, disabled, type = 'button', icon, className = '' }) => (
   <button
     type={type} onClick={onClick} disabled={disabled}
@@ -26,9 +21,6 @@ export const Button = ({ children, variant = 'primary', size, onClick, disabled,
   </button>
 );
 
-// ─── ExportButton / ExportButtons ────────────────────────────────────────
-// כפתור ייצוא בודד, ו-זוג כפתורי Excel+PDF
-// אייקון Excel — ירוק עם X לבן
 const ExcelIcon = () => (
   <svg className="btn-export__icon" viewBox="0 0 24 24" fill="none">
     <rect width="24" height="24" rx="4" fill="#217346" />
@@ -36,19 +28,16 @@ const ExcelIcon = () => (
   </svg>
 );
 
-// אייקון PDF — דף לבן עם מסגרת אדומה, פינה מקופלת, כיתוב PDF
 const PdfIcon = () => (
   <svg className="btn-export__icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    {/* גוף הדף */}
     <path d="M5 2h10l5 5v15a1 1 0 01-1 1H5a1 1 0 01-1-1V3a1 1 0 011-1z" fill="white" stroke="#E53935" strokeWidth="1.2" />
-    {/* פינה מקופלת */}
     <path d="M15 2l5 5h-5V2z" fill="#FFCDD2" stroke="#E53935" strokeWidth="0.8" />
-    {/* כיתוב PDF */}
     <rect x="3" y="13" width="18" height="7" rx="1" fill="#E53935" />
     <text x="12" y="18.5" fill="white" fontSize="5.5" fontWeight="800" fontFamily="Arial" textAnchor="middle">PDF</text>
   </svg>
 );
 
+// ── ExportButton / ExportButtons ── כפתורי ייצוא Excel ו-PDF
 export const ExportButton = ({ children, icon, onClick, disabled, loading }) => (
   <button className="btn-export" onClick={onClick} disabled={disabled || loading}>
     {loading ? <Spinner size="sm" /> : icon}
@@ -63,14 +52,11 @@ export const ExportButtons = ({ onExcel, onPDF, excelLoading, pdfLoading }) => (
   </div>
 );
 
-// ─── Card ─────────────────────────────────────────────────────────────────
-// קופסת תוכן עם גבול וצל. className אופציונלי להרחבה
 export const Card = ({ children, className = '' }) => (
   <div className={`card ${className}`}>{children}</div>
 );
 
-// ─── StatCard ─────────────────────────────────────────────────────────────
-// כרטיס מספר/סטטיסטיקה. label=כותרת קטנה, value=ערך גדול, sub=הערה קטנה
+// ── StatCard ── כרטיס סטטיסטיקה
 export const StatCard = ({ label, value, sub }) => (
   <Card>
     <div className="stat-card">
@@ -81,9 +67,7 @@ export const StatCard = ({ label, value, sub }) => (
   </Card>
 );
 
-// ─── Modal ────────────────────────────────────────────────────────────────
-// חלון פופ-אפ. width: מחרוזת CSS כמו '560px'.
-// לחיצה על הרקע האפור סוגרת את החלון.
+// ── Modal ── חלון פופ-אפ. לחיצה על הרקע סוגרת
 export const Modal = ({ isOpen, onClose, title, children, width = '560px' }) => {
   if (!isOpen) return null;
   return (
@@ -99,8 +83,7 @@ export const Modal = ({ isOpen, onClose, title, children, width = '560px' }) => 
   );
 };
 
-// ─── FormField ────────────────────────────────────────────────────────────
-// עוטף שדה טופס: label מעל, error מתחת. required מוסיף כוכבית.
+// ── FormField ── עוטף שדה טופס: label מעל, error מתחת
 export const FormField = ({ label, children, error, required }) => (
   <div className="form-field">
     {label && <label className={`form-label${required ? ' form-label--required' : ''}`}>{label}</label>}
@@ -109,13 +92,11 @@ export const FormField = ({ label, children, error, required }) => (
   </div>
 );
 
-// ─── Input / Select ───────────────────────────────────────────────────────
-// שדות טופס — מקבלים כל props סטנדרטי של HTML (type, value, onChange, etc.)
+// ── Input / Select ── שדות טופס סטנדרטיים
 export const Input = ({ className = '', ...props }) => <input className={`form-input ${className}`}  {...props} />;
 export const Select = ({ children, className = '', ...props }) => <select className={`form-select ${className}`} {...props}>{children}</select>;
 
-// ─── Toast ────────────────────────────────────────────────────────────────
-// הודעת מערכת זמנית שנעלמת אחרי 3.5 שניות. type: 'success'|'error'|'info'
+// ── Toast ── הודעת מערכת זמנית שנעלמת אחרי 3.5 שניות. type: 'success'|'error'|'info'
 export const Toast = ({ message, type = 'success', onClose }) => {
   useEffect(() => {
     const t = setTimeout(onClose, 3500);
@@ -129,8 +110,7 @@ export const Toast = ({ message, type = 'success', onClose }) => {
   );
 };
 
-// ─── EmptyState ───────────────────────────────────────────────────────────
-// מצב ריק: אמוג'י גדול + כותרת + תיאור אופציונלי
+// ── EmptyState ── מצב ריק: אייקון + כותרת + תיאור
 export const EmptyState = ({ icon, title, description }) => (
   <div className="empty-state">
     <div className="empty-state__icon">{icon}</div>
@@ -139,8 +119,7 @@ export const EmptyState = ({ icon, title, description }) => (
   </div>
 );
 
-// ─── ConfirmDialog ────────────────────────────────────────────────────────
-// דיאלוג "האם אתה בטוח?". danger=true הופך כפתור האישור לאדום.
+// ── ConfirmDialog ── דיאלוג אישור. danger=true הופך כפתור האישור לאדום
 export const ConfirmDialog = ({ isOpen, onClose, onConfirm, title, message, confirmLabel = 'אישור', danger = false }) => (
   <Modal isOpen={isOpen} onClose={onClose} title={title} width="400px">
     <p className="confirm-dialog__message">{message}</p>
