@@ -1,70 +1,101 @@
-# Getting Started with Create React App
+# Sorotzkin Sales – Client (Frontend)
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+אפליקציית ה-Web (React) של מערכת ניהול המכירות של ת.ת. סורוצקין. זהו **כלי ניהול פנימי לצד המוכר בלבד** — לא אתר מסחר אלקטרוני, ואין בו עגלת קניות, תשלום או הרשמת לקוחות.
 
-## Available Scripts
+השרת (API) התואם נמצא במאגר נפרד: https://github.com/Tzippy-Levanon/SorotzkinSales_Server. יש להריץ אותו כדי שהאפליקציה תעבוד, ראו קובץ ה-README שלו לפרטים.
 
-In the project directory, you can run:
+## מטרת הפרויקט
 
-### `npm start`
+הממשק נועד להחליף ניהול ידני בקבצי Excel של מלאי, מכירות וספקים במסך Web מרכזי אחד: כל עדכון נשמר בזמן אמת בשרת, המערכת אוכפת ולידציה עסקית (למשל מניעת מכירה מעבר למלאי הקיים), וניתן להפיק דוחות מוכנים בלחיצת כפתור במקום לבנות אותם ידנית מדי פעם.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## מה האפליקציה עושה בפועל
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- **התחברות** — מסך כניסה עם סיסמה יחידה משותפת; לאחר התחברות נשמר Cookie ל-7 ימים והממשק זוכר את המשתמש גם אחרי רענון.
+- **מלאי (`/products`)** — טבלת מוצרים עם שיוך לספק, מחירי עלות/מכירה, כמות במלאי וסטטוס פעיל/לא פעיל; הוספה ועריכה של מוצר; צפייה בהיסטוריית הגעות מלאי לכל מוצר.
+- **מכירות (`/sales`)** — פתיחת אירוע מכירה, בחירת מוצרים והוספתם אליו (עם בדיקת זמינות מול המלאי), סגירת מכירה תוך דיווח כמות שנותרה מכל מוצר (המערכת מחשבת לבד כמה נמכר), והסרת מוצר/מחיקת מכירה כל עוד היא פתוחה.
+- **ספקים (`/suppliers`)** — ניהול רשימת ספקים, רישום הגעת סחורה מספק, רישום תשלום לספק, העלאת חשבונית/קבלה (PDF/JPG/PNG/DOC/DOCX), וצפייה ביתרת חוב והיסטוריית תשלומים.
+- **דוחות (`/reports`)** — דוח מלאי, דוח מכירות (כללי או למכירה בודדת) ודוח יתרות ספקים; צפייה במסך או הורדה כקובץ Excel מעוצב שמופק בשרת.
+- הודעות מערכת (Toast) ודיאלוגים (SweetAlert2) לאישורים ולשגיאות, וממשק כולו בעברית (RTL).
 
-### `npm test`
+## טכנולוגיות
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- **React 19** — נבנה עם **Create React App** (`react-scripts` 5)
+- **React Router 7** (`react-router-dom`) — ניתוב בצד לקוח (SPA)
+- **react-select** — רכיבי בחירה מתקדמים (למשל בחירת מוצרים/ספקים בטפסים)
+- **sweetalert2** — פופאפים ואישורי פעולה
+- **html2pdf.js** — ייצוא תוכן ל-PDF בצד הלקוח
+- CSS מודולרי עצמאי (`variables.css` / `base.css` / `components.css` / `pages.css`) — ללא ספריית UI חיצונית (לא Bootstrap/MUI)
+- **Testing Library** + Jest (דרך `react-scripts test`)
 
-### `npm run build`
+## דרישות מקדימות (Prerequisites)
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- **Node.js** גרסה 18 ומעלה (מומלץ 20 LTS) ו-**npm** בהתאם.
+- מאגר ה-Backend (https://github.com/Tzippy-Levanon/SorotzkinSales_Server) מותקן ורץ (ראו את ה-README שלו), עם כתובת API נגישה.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## התקנה והרצה
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+git clone https://github.com/Tzippy-Levanon/SorotzkinSales_Client
+cd sorotzkin-sales
+npm install
+```
 
-### `npm run eject`
+צרו קובץ `.env` בשורש התיקייה עם המשתנה הבא:
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```
+REACT_APP_API_URL=http://localhost:5000/api
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+הרצה במצב פיתוח:
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+```bash
+npm start
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+האפליקציה תיפתח בדפדפן בכתובת `http://localhost:3000`. יש לוודא שהשרת (Backend) כבר רץ, אחרת קריאות ה-API ייכשלו.
 
-## Learn More
+### בנייה לפרודקשן
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```bash
+npm run build
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+יוצר תיקיית `build/` סטטית מוכנה לפריסה.
 
-### Code Splitting
+## משתני סביבה (`.env`)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+| משתנה | תיאור |
+|---|---|
+| `REACT_APP_API_URL` | כתובת הבסיס של ה-API של השרת (למשל `http://localhost:5000/api` בפיתוח, וכתובת השרת הפרוס בענן בפרודקשן) |
 
-### Analyzing the Bundle Size
+בהתאם למוסכמת Create React App, משתני סביבה חייבים להתחיל ב-`REACT_APP_` כדי שייכללו בבאנדל בזמן build.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## מבנה תיקיות עיקרי
 
-### Making a Progressive Web App
+```
+src/
+├── App.js                          # רכיב שורש: בדיקת סשן, ניתוב, Toast/Spinner
+├── sorotzkinSales/
+│   ├── api/index.js                # שכבת תקשורת מרוכזת מול ה-API (fetch wrapper)
+│   ├── Common/                     # Navbar, LoginPage, AppSelect, Pagination, UI (Toast/Spinner)
+│   ├── Products/                   # מסך ניהול מלאי/מוצרים
+│   ├── Sales/                      # מסך ניהול מכירות
+│   ├── Suppliers/                  # מסך ניהול ספקים, תשלומים והגעות סחורה
+│   ├── Reports/                    # מסך דוחות (מלאי / מכירות / ספקים)
+│   ├── Routing/Routing.jsx         # הגדרת נתיבי react-router
+│   ├── Style/                      # CSS מודולרי (variables/base/components/pages)
+│   └── utils.js
+└── (App.css, index.js/css, logo.svg, setupTests.js — קבצי ברירת מחדל של CRA)
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## פריסה (Deployment)
 
-### Advanced Configuration
+בתיקיית `public/` קיים קובץ `_redirects` (`/* /index.html 200`) המיועד לפריסה בשירותים כמו **Netlify**, כדי שניתוב SPA בצד הלקוח (React Router) ימשיך לעבוד גם ברענון דף או בכניסה ישירה לכתובת פנימית. בעת פריסה יש להגדיר את `REACT_APP_API_URL` (כמשתנה סביבה בשירות האחסון) לכתובת ה-Backend הפרוס בענן, ולוודא שה-`CLIENT_URL` בהגדרות השרת תואם לכתובת שבה מתארחת אפליקציית ה-Frontend (לצורך CORS).
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+## הרצת בדיקות
 
-### Deployment
+```bash
+npm test
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+מריץ את סוויטת הבדיקות (Jest, דרך `react-scripts test`) במצב אינטראקטיבי.
